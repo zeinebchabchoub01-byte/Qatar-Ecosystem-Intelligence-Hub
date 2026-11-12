@@ -13,6 +13,7 @@ import { inventory, sources } from "../server/sources";
 import api from "../netlify/functions/api";
 import scheduled from "../netlify/functions/daily-sync";
 import { admin } from "../server/auth";
+import { queueSync } from "../server/queue";
 import type { Article, Feed } from "../src/types";
 let directory: string;
 let server: BlobsServer;
@@ -258,4 +259,65 @@ test("mixed feed outcomes produce partial status and preserve successful content
   assert.equal("failed" in run && run.failed, 1);
   assert.equal(await read("last-success", null), last);
   await store().setJSON("feed-inventory", [feed]);
+});
+
+test("accepted dispatch persists queued status, suppresses repeat clicks, and allows retry after timeout", async () => {
+  const originalFetch = globalThis.fetch;
+  const originalURL = process.env.APP_URL;
+  const originalSecret = process.env.SYNC_SECRET;
+  const previous = await read("sync-current", null);
+  let calls = 0;
+  process.env.APP_URL = "https://example.com";
+  process.env.SYNC_SECRET =
+    "test-only-worker-secret-with-at-least-32-characters";
+  globalThis.fetch = async (input, init) => {
+    if (
+      String(input) === "https://example.com/.netlify/functions/sync-background"
+    ) {
+      calls++;
+      return new Response(null, { status: 202 });
+    }
+    return originalFetch(input, init);
+  };
+  try {
+    await store().delete("sync-current");
+    await queueSync();
+    const queued = await read<any>("sync-current", null);
+    assert.equal(queued.status, "queued");
+    await queueSync();
+    assert.equal(calls, 1);
+    await store().setJSON("sync-current", {
+      ...queued,
+      startedAt: new Date(Date.now() - 3 * 60_000).toISOString(),
+    });
+    await queueSync();
+    assert.equal(calls, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalURL === undefined) delete process.env.APP_URL;
+    else process.env.APP_URL = originalURL;
+    if (originalSecret === undefined) delete process.env.SYNC_SECRET;
+    else process.env.SYNC_SECRET = originalSecret;
+    await store().setJSON("sync-current", previous);
+  }
+});
+
+test("inventory remains imported when automatic dispatch fails, with a visible failure status", async () => {
+  const { cookie } = await import("../server/auth");
+  const response = await api(
+    new Request("http://localhost/.netlify/functions/api?action=import", {
+      method: "POST",
+      headers: {
+        origin: "http://localhost",
+        "content-type": "application/json",
+        cookie: cookie(new Request("http://localhost")),
+      },
+      body: JSON.stringify({ feeds: [feed] }),
+    }),
+    {},
+  );
+  assert.equal(response.status, 200);
+  assert.match((await response.json()).message, /feeds imported.*Configure/);
+  assert.equal((await sources())[0].configured, true);
+  assert.equal((await read<any>("sync-current", null)).status, "failed");
 });

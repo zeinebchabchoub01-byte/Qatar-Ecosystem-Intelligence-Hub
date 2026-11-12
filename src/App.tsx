@@ -50,6 +50,8 @@ export default function App() {
   const [view, setView] = useState("Overview");
   const [filters, setFilters] = useState(emptyFilters);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [refreshAfterLogin, setRefreshAfterLogin] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [login, setLogin] = useState(false);
@@ -84,14 +86,15 @@ export default function App() {
   );
   async function mutate(action: string, body: unknown) {
     setBusy(true);
-    setError("");
+    setActionError("");
+    setMessage("");
     try {
       const result = await request(action, body);
       if (result.message) setMessage(result.message);
       await load();
       return true;
     } catch (e) {
-      setError((e as Error).message);
+      setActionError((e as Error).message);
       return false;
     } finally {
       setBusy(false);
@@ -99,6 +102,7 @@ export default function App() {
   }
   function refresh() {
     if (!data?.admin) {
+      setRefreshAfterLogin(true);
       setLogin(true);
       return;
     }
@@ -114,6 +118,9 @@ export default function App() {
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
   const run = data?.run;
+  const queued =
+    run?.status === "queued" &&
+    Date.parse(run.startedAt) > Date.now() - 2 * 60_000;
   const running =
     run?.status === "running" &&
     !run.finishedAt &&
@@ -183,18 +190,31 @@ export default function App() {
             </button>
             <button
               className="primary"
-              disabled={busy || running}
+              disabled={busy || running || queued}
               onClick={refresh}
             >
               <RefreshCw size={18} className={running ? "spin" : ""} />
-              {running ? "Syncing…" : "Refresh"}
+              {running
+                ? "Syncing…"
+                : queued
+                  ? "Sync queued…"
+                  : !run || !data?.articles.length
+                    ? "Start sync"
+                    : "Refresh"}
             </button>
           </div>
         </header>
-        {error && (
+        {(error || actionError) && (
           <div role="alert" className="notice error">
-            {error}
-            <button onClick={load}>Retry</button>
+            {actionError || error}
+            <button
+              onClick={() => {
+                setActionError("");
+                load();
+              }}
+            >
+              Dismiss
+            </button>
           </div>
         )}
         {message && (
@@ -264,23 +284,40 @@ export default function App() {
             >
               <Info size={23} />
               <strong>
-                {!run
-                  ? "Not synchronized yet"
-                  : running
-                    ? "Synchronization in progress"
-                    : run.status === "running"
-                      ? "Previous sync interrupted"
-                      : run.status === "success"
-                        ? "Synchronization complete"
-                        : run.status === "partial"
-                          ? "Partially synchronized"
-                          : "Synchronization failed"}
+                {queued
+                  ? "Synchronization queued"
+                  : run?.status === "queued"
+                    ? "Synchronization did not start"
+                    : !run
+                      ? "Not synchronized yet"
+                      : running
+                        ? "Synchronization in progress"
+                        : run.status === "running"
+                          ? "Previous sync interrupted"
+                          : run.status === "success"
+                            ? "Synchronization complete"
+                            : run.status === "partial"
+                              ? "Partially synchronized"
+                              : "Synchronization failed"}
               </strong>
               <span>
-                {run
-                  ? `${run.successful} successful · ${run.failed} failed · ${run.added} new articles${run.error ? " · " + run.error : ""}`
-                  : "Run your first sync to start gathering intelligence."}
+                {run?.status === "queued"
+                  ? queued
+                    ? "Waiting for the collection worker to start…"
+                    : "The worker has not started. Click Start sync to retry. If this continues, check the sync-background function logs."
+                  : run
+                    ? `${run.successful} successful · ${run.failed} failed · ${run.added} new articles${run.error ? " · " + run.error : ""}`
+                    : data.sources.some((s) => s.configured && s.enabled)
+                      ? "Your feeds are ready. Start sync to collect your first articles."
+                      : "Import your feed inventory in Sources to start collecting articles."}
               </span>
+              {!running &&
+                !queued &&
+                data.sources.some((s) => s.configured && s.enabled) && (
+                  <button className="primary" disabled={busy} onClick={refresh}>
+                    {run ? "Retry sync" : "Start first sync"}
+                  </button>
+                )}
               <small>
                 Last successful sync: {dateLabel(data.lastSuccess)}
                 <br />
@@ -308,7 +345,7 @@ export default function App() {
                           const file = e.target.files?.[0];
                           if (!file) return;
                           if (file.size > 200000) {
-                            setError("Inventory file exceeds 200 KB.");
+                            setActionError("Inventory file exceeds 200 KB.");
                             return;
                           }
                           try {
@@ -316,7 +353,7 @@ export default function App() {
                               feeds: JSON.parse(await file.text()),
                             });
                           } catch {
-                            setError(
+                            setActionError(
                               "Please select a valid JSON inventory file.",
                             );
                           }
@@ -398,7 +435,13 @@ export default function App() {
         )}
       </main>
       {login && (
-        <div className="modal-backdrop" onClick={() => setLogin(false)}>
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setLogin(false);
+            setRefreshAfterLogin(false);
+          }}
+        >
           <section
             className="login panel"
             role="dialog"
@@ -409,7 +452,10 @@ export default function App() {
             <button
               className="close icon-button"
               aria-label="Close login"
-              onClick={() => setLogin(false)}
+              onClick={() => {
+                setLogin(false);
+                setRefreshAfterLogin(false);
+              }}
             >
               <X />
             </button>
@@ -424,6 +470,10 @@ export default function App() {
                 if (await mutate("login", { password })) {
                   setPassword("");
                   setLogin(false);
+                  if (refreshAfterLogin) {
+                    setRefreshAfterLogin(false);
+                    await mutate("refresh", {});
+                  }
                 }
               }}
             >
