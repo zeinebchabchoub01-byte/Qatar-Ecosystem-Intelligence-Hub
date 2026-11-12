@@ -157,6 +157,8 @@ Inventory imports and runtime switches require no deploy. Regenerating the safe 
 
 ## 7. Local development and tests
 
+The `sanitize-html` dependency overrides `htmlparser2` to version 10, which supports CommonJS loading. Version 12 is ESM-only and caused the deployed synchronization worker to crash at startup with `ERR_REQUIRE_ESM`. Keep this override until the sanitizer and deployed runtime support loading it together. The tests include a worker startup check with CommonJS-to-ESM loading disabled.
+
 ```sh
 npm ci
 # Copy .env.example to .env, then set all variables; use APP_URL=http://localhost:8888
