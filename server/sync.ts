@@ -1,3 +1,4 @@
+import { networkUnavailable } from "./falak";
 import { randomUUID } from "node:crypto";
 import { store, read, list } from "./storage";
 import { enabledFeeds } from "./sources";
@@ -60,7 +61,9 @@ export async function synchronize(
               ...prior,
               lastAttempt,
               lastError:
-                e instanceof Error && /^HTTP \d+$/.test(e.message)
+                e instanceof Error &&
+                (/^HTTP \d+$/.test(e.message) ||
+                  e.message === networkUnavailable)
                   ? e.message
                   : "Feed fetch or parsing failed; check the RSS URL and retry.",
             });

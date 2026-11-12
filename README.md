@@ -1,6 +1,6 @@
 # Qatar Ecosystem Intelligence Hub
 
-A working React + Vite + TypeScript dashboard for Qatar entrepreneurship, innovation, startup funding, policy, research, GCC developments, and Arabic reporting. It collects your **46 unique Google Alerts RSS/Atom feeds**, with the categories, queries, languages and descriptions from your inventory.
+A working React + Vite + TypeScript dashboard for Qatar entrepreneurship, innovation, startup funding, policy, research, GCC developments, and Arabic reporting. It collects built-in **Falak** sources alongside your **46 unique Google Alerts RSS/Atom feeds**, with the categories, queries, languages and descriptions from your inventory.
 
 The dashboard is public to anyone who has its URL. It is **not a private research room**. Feed URLs and admin credentials remain server-side. An administrator can refresh, enable/disable feeds, and maintain one **shared reading list**. Anyone can read that list or export articles. Individual user accounts are not included.
 
@@ -202,3 +202,7 @@ Tests use the official Blobs emulator in an isolated temporary directory. They v
 - This is a small-team research archive: all article metadata is loaded for filtering, and synchronization currently reads/writes the archive. As it grows to tens of thousands of records, add server-side pagination/search, incremental writes and a relational index before performance or worker limits become a problem. No automated deletion is applied.
 - Bookmarks are one shared owner-managed list, not personal accounts. There is no password recovery email, multiuser permissions, or full-dashboard access gate. Rotate ADMIN_PASSWORD **and SESSION_SECRET** to revoke all existing sessions. Sessions expire after eight hours. The API uses Netlify IP/domain rate limiting; local runtime behavior can differ.
 - Production deployment, actual cloud persistence and daily scheduler execution must be verified in your own Netlify account. Local tests cannot prove account permissions, billing or tomorrow's scheduled run.
+
+Falak sources are configured automatically and included in manual and scheduled syncs alongside imported Google Alerts. Each source can be disabled individually in Sources. The Newsroom and Knowledge Hub use Falak’s Atom feeds. Startups’ Directory and Whitepapers & Reports collect individual listing cards from their public pages, with separate categories in the existing article feed. Profile and report cards link to Falak’s original pages; no report download or access restriction is bypassed. Entries without a published date remain undated, and repeated syncs do not add duplicate URLs.
+
+The Incubators and Accelerators Network source checks Falak’s linked network page. At verification, this page displayed Knowledge Hub content rather than network listings. It reports a visible source error and makes the sync partial while other sources continue collecting; unrelated articles are not imported as incubators. The source can be disabled until Falak supplies listings. HTML collection covers listing cards exposed on the public page, not unlisted profiles or a full historical crawl. Changes to Falak’s markup may require parser updates.
