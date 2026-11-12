@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { parseFalakPage, networkUnavailable } from "../server/falak";
 import { builtInFeeds } from "../server/sources";
 import { mergeArticles } from "../server/rss";
-const feed = builtInFeeds.find((f) => f.id === "falak-startups")!;
+const feed = builtInFeeds.find((f) => f.id === "falak-reports")!;
 const card = (url: string, title = "Qatar startup") =>
   `<div class="product-card"><div class="product-card__title"><a href="${url}">${title}</a></div><div class="product-details"><h6>Founder &amp; SME innovation</h6><script>bad()</script></div></div>`;
 test("Falak listings exclude navigation and unsafe links, sanitize text and deduplicate", () => {
@@ -24,7 +24,7 @@ test("Falak reports support title anchors and report descriptions", () => {
   );
   assert.equal(items[0].title, "Startup report");
   assert.equal(items[0].description, "Research findings");
-  assert.deepEqual(items[0].categories, ["Whitepapers & Reports"]);
+  assert.deepEqual(items[0].categories, ["falaq/Whitepapers & Reports"]);
 });
 test("Falak network does not import unrelated Knowledge Hub articles or fabricate listings", () => {
   const network = builtInFeeds.find((f) => f.id === "falak-network")!;

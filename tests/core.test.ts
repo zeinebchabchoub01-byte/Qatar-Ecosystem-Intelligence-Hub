@@ -419,3 +419,25 @@ test("Falak feeds stay configured without inventory and respect source toggles",
     else process.env.RSS_FEEDS_JSON = raw;
   }
 });
+
+test("removed directory entries disappear immediately and synchronization deletes their content and bookmarks", async () => {
+  const [base] = await parse(rss, feed);
+  const directory = { ...base, id: "d".repeat(64), sourceIds: ["falak-startups"], categories: ["Startups’ Directory"] };
+  const news = { ...base, id: "e".repeat(64), sourceIds: ["falak-news"], categories: ["The Newsroom"] };
+  await store().setJSON(`article/${directory.id}`, directory);
+  await store().setJSON(`bookmark/${directory.id}`, { savedAt: new Date().toISOString() });
+  await store().setJSON(`article/${news.id}`, news);
+  await store().setJSON("status/falak-startups", { items: 71 });
+  const response = await api(new Request("https://hub.test/api"), {});
+  const snapshot = await response.json();
+  assert.ok(!snapshot.articles.some((a: Article) => a.id === directory.id));
+  assert.ok(!snapshot.bookmarks.includes(directory.id));
+  assert.deepEqual(snapshot.articles.find((a: Article) => a.id === news.id).categories, ["falaq/The Newsroom"]);
+  assert.ok(!snapshot.sources.some((s: Feed) => s.id === "falak-startups"));
+  assert.ok(snapshot.sources.filter((s: Feed) => s.id.startsWith("falak-")).every((s: Feed) => s.category.startsWith("falaq/") && s.name.startsWith("falaq/")));
+  await synchronize(async () => []);
+  assert.equal(await read(`article/${directory.id}`, null), null);
+  assert.equal(await read(`bookmark/${directory.id}`, null), null);
+  assert.equal(await read("status/falak-startups", null), null);
+  assert.deepEqual((await read<Article>(`article/${news.id}`, news)).categories, ["falaq/The Newsroom"]);
+});

@@ -2,6 +2,8 @@ import { decodeHTML } from "entities";
 import { createHash } from "node:crypto";
 import Parser from "rss-parser";
 import sanitize from "sanitize-html";
+import { parseDocument } from "htmlparser2";
+import { findAll, getOuterHTML } from "domutils";
 import type { Article, Feed } from "../src/types";
 import { passesQualityChecks } from "./quality";
 export const hash = (v: string) => createHash("sha256").update(v).digest("hex");
@@ -9,6 +11,20 @@ export const text = (v: string = "") =>
   decodeHTML(sanitize(v, { allowedTags: [], allowedAttributes: {} }))
     .replace(/\s+/g, " ")
     .trim();
+// Keep paragraph boundaries until after extracting the excerpt. contentSnippet
+// has already flattened them and can contain the entire article.
+export function firstParagraph(value: string = "") {
+  const clean = sanitize(value, {
+    allowedTags: ["p", "br"],
+    allowedAttributes: {},
+  });
+  const paragraphs = findAll((node) => node.name === "p", parseDocument(clean).children);
+  for (const paragraph of paragraphs) {
+    const excerpt = text(getOuterHTML(paragraph));
+    if (excerpt) return excerpt;
+  }
+  return text(clean.split(/(?:\r?\n\s*){2,}|(?:<br\s*\/?>(?:\s*)){2,}/i)[0]);
+}
 export function articleUrl(raw: string) {
   let u = new URL(raw);
   if (/(^|\.)google\.[a-z.]+$/.test(u.hostname) && u.pathname === "/url") {
@@ -53,9 +69,9 @@ export async function parse(
         date && Number.isFinite(Date.parse(date))
           ? new Date(date).toISOString()
           : null;
-      const description = text(
-        item.contentSnippet || item.content || item.summary || "",
-      );
+      const description = [
+        item["content:encoded"], item.content, item.summary, item.contentSnippet,
+      ].map((value) => firstParagraph(value || "")).find(Boolean) || "";
       const title = text(item.title);
       if (!passesQualityChecks({ title, description })) continue;
       const publisher =
@@ -92,6 +108,8 @@ export function mergeArticles(existing: Article[], incoming: Article[]) {
       a.guids.map((g) => byGuid.get(g)).find(Boolean) ||
       byUrl.get(canonical(a.url));
     if (prior) {
+      prior.title = a.title;
+      prior.description = a.description;
       prior.language = a.language;
       prior.sourceIds = [...new Set([...prior.sourceIds, ...a.sourceIds])];
       prior.categories = [...new Set([...prior.categories, ...a.categories])];
@@ -109,7 +127,6 @@ export function mergeArticles(existing: Article[], incoming: Article[]) {
 }
 export async function fetchFeed(feed: Feed) {
   const isFalakPage = [
-    "falak-startups",
     "falak-network",
     "falak-reports",
   ].includes(feed.id);

@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { store, read, list } from "./storage";
 import { enabledFeeds } from "./sources";
 import { fetchFeed, mergeArticles } from "./rss";
+import { currentArticles, isDirectoryArticle } from "./article-sources";
 import type { Article, SyncRun, Feed } from "../src/types";
 // Atomic lease avoids concurrent read/merge/write sync runs. Worker finishes in < 5 minutes.
 export async function synchronize(
@@ -29,6 +30,13 @@ export async function synchronize(
   };
   try {
     await db.setJSON("sync-current", run);
+    const stored = await list<Article>("article/");
+    for (const article of stored.filter(isDirectoryArticle)) {
+      await db.delete(`article/${article.id}`);
+      await db.delete(`bookmark/${article.id}`);
+    }
+    await db.delete("status/falak-startups");
+    await db.delete("enabled/falak-startups");
     const feeds = await enabledFeeds();
     if (!feeds.length)
       throw new Error(
@@ -71,8 +79,8 @@ export async function synchronize(
         }
       }),
     );
-    const existing = await list<Article>("article/");
-    const merged = mergeArticles(existing, incoming);
+    const existing = currentArticles(stored);
+    const merged = mergeArticles(existing, currentArticles(incoming));
     run.added = merged.added;
     for (let i = 0; i < merged.articles.length; i += 20) {
       await Promise.all(
