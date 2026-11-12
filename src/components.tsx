@@ -117,7 +117,7 @@ export function ArticleList({
   total: number;
   saved: string[];
   onSave: (id: string, saved: boolean) => void;
-  onRefresh: () => void;
+  onRefresh?: () => void;
   sort: string;
   onSort: (s: string) => void;
   pageTitle: string;
@@ -201,9 +201,11 @@ export function ArticleList({
           <p>
             {total
               ? "Try adjusting your filters or saving an article to your reading list."
-              : "Run your first sync to collect intelligence from your registered sources."}
+              : onRefresh
+                ? "Run your first sync to collect intelligence from your registered sources."
+                : "Articles will appear here after the next scheduled synchronization."}
           </p>
-          {!total && (
+          {!total && onRefresh && (
             <>
               <div className="first-run">
                 <h4>Run your first sync</h4>
@@ -212,7 +214,7 @@ export function ArticleList({
                     Review the registered feeds in <strong>Sources</strong>.
                   </li>
                   <li>
-                    Sign in as admin and click <strong>Refresh</strong>.
+                    Click <strong>Start sync</strong> to begin collection.
                   </li>
                   <li>
                     Collected intelligence will appear here, newest first.
