@@ -108,10 +108,17 @@ export function mergeArticles(existing: Article[], incoming: Article[]) {
   return { articles: out, added };
 }
 export async function fetchFeed(feed: Feed) {
+  const isFalakPage = [
+    "falak-startups",
+    "falak-network",
+    "falak-reports",
+  ].includes(feed.id);
   const response = await fetch(feed.url, {
     signal: AbortSignal.timeout(12000),
     headers: {
-      Accept: "application/atom+xml, application/rss+xml, application/xml",
+      Accept: isFalakPage
+        ? "text/html"
+        : "application/atom+xml, application/rss+xml, application/xml",
     },
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -129,5 +136,10 @@ export async function fetchFeed(feed: Feed) {
     }
     chunks.push(value);
   }
-  return parse(Buffer.concat(chunks).toString("utf8"), feed);
+  const content = Buffer.concat(chunks).toString("utf8");
+  if (isFalakPage) {
+    const { parseFalakPage } = await import("./falak");
+    return parseFalakPage(content, feed);
+  }
+  return parse(content, feed);
 }

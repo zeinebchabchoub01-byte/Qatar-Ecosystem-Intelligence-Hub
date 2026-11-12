@@ -10,7 +10,12 @@ import { parse, mergeArticles, canonical } from "../server/rss";
 import { filterArticles, emptyFilters, csv } from "../src/data";
 import { synchronize } from "../server/sync";
 import { store, read, list } from "../server/storage";
-import { inventory, sources } from "../server/sources";
+import {
+  builtInFeeds,
+  enabledFeeds,
+  inventory,
+  sources,
+} from "../server/sources";
 import api from "../netlify/functions/api";
 import scheduled from "../netlify/functions/daily-sync";
 import { admin } from "../server/auth";
@@ -76,7 +81,12 @@ test("RSS parses actual dates, missing dates, sanitized descriptions and skips u
   assert.equal(a[1].publishedAt, null);
 });
 test("quality checks reject generic video entries but preserve meaningful videos and undated articles", async () => {
-  for (const title of ["11 de novembro de 2026 - YouTube", "November 11, 2026 – YouTube", "2026-11-11", "YouTube"]) {
+  for (const title of [
+    "11 de novembro de 2026 - YouTube",
+    "November 11, 2026 – YouTube",
+    "2026-11-11",
+    "YouTube",
+  ]) {
     assert.equal(passesQualityChecks({ title, description: "" }), false);
   }
   const xml = `<rss version="2.0"><channel><title>Alerts</title>
@@ -92,10 +102,17 @@ test("quality checks reject generic video entries but preserve meaningful videos
 });
 test("snapshot hides previously collected low-quality entries without deleting stored records", async () => {
   const id = "quality-check-test";
-  const bad = { ...(await parse(rss, feed))[0], id, title: "11 de novembro de 2026 - YouTube" };
+  const bad = {
+    ...(await parse(rss, feed))[0],
+    id,
+    title: "11 de novembro de 2026 - YouTube",
+  };
   await store().setJSON(`article/${id}`, bad);
   try {
-    const response = await api(new Request("http://localhost/.netlify/functions/api"), {});
+    const response = await api(
+      new Request("http://localhost/.netlify/functions/api"),
+      {},
+    );
     assert.equal(response.status, 200);
     const snapshot = await response.json();
     assert.ok(!snapshot.articles.some((a: Article) => a.id === id));
@@ -172,6 +189,7 @@ test("failed feeds do not erase history or last successful sync; disabled feeds 
   const status = (await sources()).find((s) => s.id === "one");
   assert.ok(status?.lastError);
   await store().setJSON("enabled/one", false);
+  for (const f of builtInFeeds) await store().setJSON(`enabled/${f.id}`, false);
   const run = await synchronize(async () => {
     throw new Error("should not execute");
   });
@@ -180,6 +198,7 @@ test("failed feeds do not erase history or last successful sync; disabled feeds 
     "No enabled, configured feeds. Import your feed inventory in Sources.",
   );
   await store().setJSON("enabled/one", true);
+  for (const f of builtInFeeds) await store().delete(`enabled/${f.id}`);
 });
 test("lease rejects overlapping syncs", async () => {
   await store().setJSON("sync-lock", { expires: Date.now() + 60000 });
@@ -232,6 +251,7 @@ test("API rejects unauthenticated and cross-origin mutations; login is HttpOnly;
   );
   assert.equal(toggle.status, 200);
   await store().setJSON("enabled/one", true);
+  for (const f of builtInFeeds) await store().delete(`enabled/${f.id}`);
   const snapshot = await api(
     new Request("http://localhost/.netlify/functions/api"),
     {},
@@ -303,7 +323,7 @@ test("mixed feed outcomes produce partial status and preserve successful content
     return parse(rss, f);
   });
   assert.equal("status" in run && run.status, "partial");
-  assert.equal("successful" in run && run.successful, 1);
+  assert.equal("successful" in run && run.successful, 1 + builtInFeeds.length);
   assert.equal("failed" in run && run.failed, 1);
   assert.equal(await read("last-success", null), last);
   await store().setJSON("feed-inventory", [feed]);
@@ -368,4 +388,34 @@ test("inventory remains imported when automatic dispatch fails, with a visible f
   assert.match((await response.json()).message, /feeds imported.*Configure/);
   assert.equal((await sources())[0].configured, true);
   assert.equal((await read<any>("sync-current", null)).status, "failed");
+});
+
+test("Falak feeds stay configured without inventory and respect source toggles", async () => {
+  const saved = await read<Feed[] | null>("feed-inventory", null);
+  const raw = process.env.RSS_FEEDS_JSON;
+  try {
+    await store().delete("feed-inventory");
+    delete process.env.RSS_FEEDS_JSON;
+    const all = await sources();
+    for (const feed of builtInFeeds) {
+      assert.equal(all.find((s) => s.id === feed.id)?.configured, true);
+      assert.ok((await enabledFeeds()).some((f) => f.id === feed.id));
+    }
+    await store().setJSON("enabled/falak-news", false);
+    assert.ok(!(await enabledFeeds()).some((f) => f.id === "falak-news"));
+    await store().setJSON("feed-inventory", [feed]);
+    assert.ok(
+      (await enabledFeeds()).some((f) => f.id === "falak-knowledge-hub"),
+    );
+    process.env.RSS_FEEDS_JSON = JSON.stringify([
+      { ...feed, id: "falak-news" },
+    ]);
+    assert.throws(() => inventory());
+  } finally {
+    await store().delete("enabled/falak-news");
+    if (saved) await store().setJSON("feed-inventory", saved);
+    else await store().delete("feed-inventory");
+    if (raw === undefined) delete process.env.RSS_FEEDS_JSON;
+    else process.env.RSS_FEEDS_JSON = raw;
+  }
 });
