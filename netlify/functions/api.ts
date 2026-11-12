@@ -3,6 +3,7 @@ import { queueSync } from "../../server/queue";
 import { sources, validateInventory } from "../../server/sources";
 import { store, read, list } from "../../server/storage";
 import type { Article, SyncRun } from "../../src/types";
+import { passesQualityChecks } from "../../server/quality";
 const json = (
   data: unknown,
   status = 200,
@@ -18,7 +19,7 @@ export default async (req: Request, context: any) => {
     const action = url.searchParams.get("action") || "snapshot";
     if (req.method === "GET" && action === "snapshot") {
       return json({
-        articles: await list<Article>("article/"),
+        articles: (await list<Article>("article/")).filter(passesQualityChecks),
         sources: await sources(),
         run: await read<SyncRun | null>("sync-current", null),
         lastSuccess: await read("last-success", null),
