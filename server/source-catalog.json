@@ -1,0 +1,370 @@
+[
+  {
+    "id": "6ab923bb77efc6f1",
+    "name": "\"Qatar Science and Technology Park\" OR QSTP -jobs",
+    "category": "Core players",
+    "query": "\"Qatar Science and Technology Park\" OR QSTP -jobs",
+    "language": "English",
+    "description": "QSTP's own news, partners and mentions by others"
+  },
+  {
+    "id": "15c8d2babf772f8b",
+    "name": "\"Qatar Development Bank\" startup OR startups OR \"Startup Qatar\"",
+    "category": "Core players",
+    "query": "\"Qatar Development Bank\" startup OR startups OR \"Startup Qatar\"",
+    "language": "English",
+    "description": "QDB programs, funds, START/GROW rounds"
+  },
+  {
+    "id": "6e5452a790e8a364",
+    "name": "\"Qatar Research Development and Innovation\" OR \"QRDI Council\" OR \"Innovation Lighthouse\"",
+    "category": "Core players",
+    "query": "\"Qatar Research Development and Innovation\" OR \"QRDI Council\" OR \"Innovation Lighthouse\"",
+    "language": "English",
+    "description": "New QRDI calls and grants (most are closed now)"
+  },
+  {
+    "id": "0bb21502f7cc54ec",
+    "name": "\"Invest Qatar\" startup OR startups OR founders",
+    "category": "Core players",
+    "query": "\"Invest Qatar\" startup OR startups OR founders",
+    "language": "English",
+    "description": "Startup Qatar, incentives, relocation packages"
+  },
+  {
+    "id": "b170863c6ada38f1",
+    "name": "TASMU OR \"Digital Incubation Center\" OR \"Scale Now\" Qatar",
+    "category": "Core players",
+    "query": "TASMU OR \"Digital Incubation Center\" OR \"Scale Now\" Qatar",
+    "language": "English",
+    "description": "MCIT programs: accelerators, pilot zone, DIC tracks"
+  },
+  {
+    "id": "e069501263354c2a",
+    "name": "\"Qatar FinTech Hub\" OR \"Qatar Central Bank\" fintech OR sandbox",
+    "category": "Core players",
+    "query": "\"Qatar FinTech Hub\" OR \"Qatar Central Bank\" fintech OR sandbox",
+    "language": "English",
+    "description": "Fintech waves, grants, sandbox cohorts"
+  },
+  {
+    "id": "2c7982f622d13e4a",
+    "name": "\"Qatar Financial Centre\" startup OR fintech OR \"digital assets\"",
+    "category": "Core players",
+    "query": "\"Qatar Financial Centre\" startup OR fintech OR \"digital assets\"",
+    "language": "English",
+    "description": "QFC licences, incentives, Digital Assets Lab"
+  },
+  {
+    "id": "8b3ffd125f07edf5",
+    "name": "\"Qatar Investment Authority\" \"fund of funds\" OR venture",
+    "category": "Core players",
+    "query": "\"Qatar Investment Authority\" \"fund of funds\" OR venture",
+    "language": "English",
+    "description": "New VC managers opening Doha offices"
+  },
+  {
+    "id": "374327dbf2df1631",
+    "name": "\"Hamad Bin Khalifa University\" OR HBKU startup OR spin-out OR innovation",
+    "category": "Core players",
+    "query": "\"Hamad Bin Khalifa University\" OR HBKU startup OR spin-out OR innovation",
+    "language": "English",
+    "description": "University funds, spin-outs, REYADA, MIJHAR"
+  },
+  {
+    "id": "3c9ed38cc2bbcca1",
+    "name": "\"Qatar Foundation\" startup OR entrepreneurship OR innovation",
+    "category": "Core players",
+    "query": "\"Qatar Foundation\" startup OR entrepreneurship OR innovation",
+    "language": "English",
+    "description": "QF-wide initiatives (Stars of Science, WISE, Sidra)"
+  },
+  {
+    "id": "11a9e0a743c8724a",
+    "name": "\"Media City Qatar\" OR \"Qatar Free Zones\" startups OR incentives",
+    "category": "Core players",
+    "query": "\"Media City Qatar\" OR \"Qatar Free Zones\" startups OR incentives",
+    "language": "English",
+    "description": "Licensing and incentive changes"
+  },
+  {
+    "id": "a4df327e963b6f32",
+    "name": "Jusour OR Mustaqel OR \"entrepreneur residency\" Qatar",
+    "category": "Core players",
+    "query": "Jusour OR Mustaqel OR \"entrepreneur residency\" Qatar",
+    "language": "English",
+    "description": "Founder visas and residency rules"
+  },
+  {
+    "id": "ccb363144ff2a528",
+    "name": "Qatar accelerator OR incubator launch OR launches OR announces",
+    "category": "New initiatives",
+    "query": "Qatar accelerator OR incubator launch OR launches OR announces",
+    "language": "English",
+    "description": "Any new program, by anyone"
+  },
+  {
+    "id": "210864494d7e29c4",
+    "name": "Qatar \"call for applications\" startups OR founders OR innovators",
+    "category": "New initiatives",
+    "query": "Qatar \"call for applications\" startups OR founders OR innovators",
+    "language": "English",
+    "description": "Open calls, intakes and deadlines"
+  },
+  {
+    "id": "ff3a986ea7dfa128",
+    "name": "Doha startup competition OR hackathon OR \"innovation challenge\"",
+    "category": "New initiatives",
+    "query": "Doha startup competition OR hackathon OR \"innovation challenge\"",
+    "language": "English",
+    "description": "Competitions and challenges"
+  },
+  {
+    "id": "4bb3baee9ed920bb",
+    "name": "Qatar \"venture studio\" OR \"venture builder\"",
+    "category": "New initiatives",
+    "query": "Qatar \"venture studio\" OR \"venture builder\"",
+    "language": "English",
+    "description": "New studios (Rubix, Utopia-type)"
+  },
+  {
+    "id": "14eaf7ee777b3ddd",
+    "name": "Qatar \"open innovation\" OR \"pilot program\" startups",
+    "category": "New initiatives",
+    "query": "Qatar \"open innovation\" OR \"pilot program\" startups",
+    "language": "English",
+    "description": "Corporate and government pilots"
+  },
+  {
+    "id": "b3325135b0349948",
+    "name": "Qatar startup raises OR \"seed round\" OR \"pre-seed\" OR \"Series A\"",
+    "category": "Capital",
+    "query": "Qatar startup raises OR \"seed round\" OR \"pre-seed\" OR \"Series A\"",
+    "language": "English",
+    "description": "Funding rounds: who invests, at which stage"
+  },
+  {
+    "id": "98a66ec5d3643574",
+    "name": "Qatar \"venture capital\" fund launch OR \"first close\" OR \"final close\"",
+    "category": "Capital",
+    "query": "Qatar \"venture capital\" fund launch OR \"first close\" OR \"final close\"",
+    "language": "English",
+    "description": "New funds and fund closes"
+  },
+  {
+    "id": "28d65cfc4aa68b45",
+    "name": "Doha \"angel investors\" OR \"angel network\" OR \"family office\" startups",
+    "category": "Capital",
+    "query": "Doha \"angel investors\" OR \"angel network\" OR \"family office\" startups",
+    "language": "English",
+    "description": "Early-stage money (the funnel gap)"
+  },
+  {
+    "id": "757a60bcb8137130",
+    "name": "\"Doha office\" \"venture capital\" OR VC",
+    "category": "Capital",
+    "query": "\"Doha office\" \"venture capital\" OR VC",
+    "language": "English",
+    "description": "Global VCs setting up in Doha"
+  },
+  {
+    "id": "0c77a980fd3f949c",
+    "name": "Qatar \"startup\" OR \"startup law\" OR \"startup visa\"",
+    "category": "Policy",
+    "query": "Qatar \"startup\" OR \"startup law\" OR \"startup visa\"",
+    "language": "English",
+    "description": "Rules that change who counts as a startup"
+  },
+  {
+    "id": "7b69075124847b75",
+    "name": "Qatar regulation fintech OR \"artificial intelligence\" OR \"data protection\" startups",
+    "category": "Policy",
+    "query": "Qatar regulation fintech OR \"artificial intelligence\" OR \"data protection\" startups",
+    "language": "English",
+    "description": "Sector rules that open or close markets"
+  },
+  {
+    "id": "5aa67d25f5b2b2b1",
+    "name": "\"Third National Development Strategy\" innovation OR entrepreneurship",
+    "category": "Policy",
+    "query": "\"Third National Development Strategy\" innovation OR entrepreneurship",
+    "language": "English",
+    "description": "National targets the ecosystem answers to"
+  },
+  {
+    "id": "3ddad5db27dede9a",
+    "name": "Ooredoo OR Vodafone OR QatarEnergy OR \"Qatar Airways\" OR QNB startups OR \"open innovation\"",
+    "category": "Corporates",
+    "query": "Ooredoo OR Vodafone OR QatarEnergy OR \"Qatar Airways\" OR QNB startups OR \"open innovation\"",
+    "language": "English",
+    "description": "Corporate programs and market access"
+  },
+  {
+    "id": "b9910fc32369283d",
+    "name": "Qatar \"corporate venture\" OR CVC startups",
+    "category": "Corporates",
+    "query": "Qatar \"corporate venture\" OR CVC startups",
+    "language": "English",
+    "description": "Corporate venture arms"
+  },
+  {
+    "id": "77c9d30df02916b0",
+    "name": "Qatar MoU startups OR entrepreneurship OR innovation",
+    "category": "Corporates",
+    "query": "Qatar MoU startups OR entrepreneurship OR innovation",
+    "language": "English",
+    "description": "New partnerships between players"
+  },
+  {
+    "id": "23bd6972da202b72",
+    "name": "Qatar university spin-out OR spinout OR \"technology transfer\"",
+    "category": "Research to founder",
+    "query": "Qatar university spin-out OR spinout OR \"technology transfer\"",
+    "language": "English",
+    "description": "Scientist-to-founder signals"
+  },
+  {
+    "id": "8213803cb09d7ec9",
+    "name": "QCRI OR QBRI OR QEERI OR \"Qatar Precision Health\" startup OR commercialization",
+    "category": "Research to founder",
+    "query": "QCRI OR QBRI OR QEERI OR \"Qatar Precision Health\" startup OR commercialization",
+    "language": "English",
+    "description": "Research institutes commercialising"
+  },
+  {
+    "id": "a1e6cad6cd7f3f80",
+    "name": "\"Web Summit Qatar\" OR \"MWC Doha\" OR \"Qatar Economic Forum\" startups",
+    "category": "Events",
+    "query": "\"Web Summit Qatar\" OR \"MWC Doha\" OR \"Qatar Economic Forum\" startups",
+    "language": "English",
+    "description": "Announcements made at big events"
+  },
+  {
+    "id": "e2fd9db4d731a878",
+    "name": "Hub71 OR ADGM OR \"Abu Dhabi\" startup program launch OR fund",
+    "category": "GCC watch",
+    "query": "Hub71 OR ADGM OR \"Abu Dhabi\" startup program launch OR fund",
+    "language": "English",
+    "description": "UAE moves that pull founders or capital"
+  },
+  {
+    "id": "15e61decff81f724",
+    "name": "Saudi startup fund OR accelerator launch OR \"Saudi Venture Capital\"",
+    "category": "GCC watch",
+    "query": "Saudi startup fund OR accelerator launch OR \"Saudi Venture Capital\"",
+    "language": "English",
+    "description": "Saudi moves that pull founders or capital"
+  },
+  {
+    "id": "fde1d9a3290ec044",
+    "name": "Bahrain OR Kuwait OR Oman startup fund OR accelerator launch",
+    "category": "GCC watch",
+    "query": "Bahrain OR Kuwait OR Oman startup fund OR accelerator launch",
+    "language": "English",
+    "description": "Smaller GCC programs to benchmark"
+  },
+  {
+    "id": "cbbe26ff6abd7232",
+    "name": "\"الشركات الناشئة\" قطر",
+    "category": "Arabic",
+    "query": "\"الشركات الناشئة\" قطر",
+    "language": "Arabic",
+    "description": "Startups in Qatar (Arabic press, often first)"
+  },
+  {
+    "id": "255040b6c58837d9",
+    "name": "\"ريادة الأعمال\" قطر",
+    "category": "Arabic",
+    "query": "\"ريادة الأعمال\" قطر",
+    "language": "Arabic",
+    "description": "Entrepreneurship programs and events"
+  },
+  {
+    "id": "a9393702f65ecc19",
+    "name": "\"بنك قطر للتنمية\" OR \"واحة قطر للعلوم والتكنولوجيا\"",
+    "category": "Arabic",
+    "query": "\"بنك قطر للتنمية\" OR \"واحة قطر للعلوم والتكنولوجيا\"",
+    "language": "Arabic",
+    "description": "QDB and QSTP in Arabic media"
+  },
+  {
+    "id": "afe44a1afad3f862",
+    "name": "\"رأس المال الجريء\" قطر",
+    "category": "Arabic",
+    "query": "\"رأس المال الجريء\" قطر",
+    "language": "Arabic",
+    "description": "Venture capital in Qatar"
+  },
+  {
+    "id": "d3f32e978e872596",
+    "name": "\"حاضنة أعمال\" OR \"مسرعة أعمال\" قطر",
+    "category": "Arabic",
+    "query": "\"حاضنة أعمال\" OR \"مسرعة أعمال\" قطر",
+    "language": "Arabic",
+    "description": "Incubators and accelerators"
+  },
+  {
+    "id": "8f440b614854bb4e",
+    "name": "MAGNiTT Qatar OR GCC OR MENA report",
+    "category": "Reports and data",
+    "query": "MAGNiTT Qatar OR GCC OR MENA report",
+    "language": "English",
+    "description": "New funding reports and rankings for Qatar and the region"
+  },
+  {
+    "id": "bfb5f79ea483966f",
+    "name": "\"Startup Genome\" Qatar OR Doha OR GCC OR MENA",
+    "category": "Reports and data",
+    "query": "\"Startup Genome\" Qatar OR Doha OR GCC OR MENA",
+    "language": "English",
+    "description": "Ecosystem rankings, GSER editions, ecosystem reports"
+  },
+  {
+    "id": "7f6a1645613fd221",
+    "name": "\"Global Startup Ecosystem\" OR StartupBlink OR \"Global Innovation Index\" Qatar",
+    "category": "Reports and data",
+    "query": "\"Global Startup Ecosystem\" OR StartupBlink OR \"Global Innovation Index\" Qatar",
+    "language": "English",
+    "description": "Global rankings that mention Qatar"
+  },
+  {
+    "id": "300e6c2c1982c8f5",
+    "name": "Wamda funding report MENA",
+    "category": "Reports and data",
+    "query": "Wamda funding report MENA",
+    "language": "English",
+    "description": "Monthly MENA funding totals by country"
+  },
+  {
+    "id": "242a9a1c7a3ba9c5",
+    "name": "(scaleup OR scale-ups OR \"scale up\" OR \"high-growth startup\" OR \"growth-stage startup\" OR شركة ناشئة متوسعة OR الشركات الناشئة المتوسعة OR شركة سريعة النمو OR شركات سريعة النمو)",
+    "category": "Scaleups",
+    "query": "(scaleup OR scale-ups OR \"scale up\" OR \"high-growth startup\" OR \"growth-stage startup\" OR شركة ناشئة متوسعة OR الشركات الناشئة المتوسعة OR شركة سريعة النمو OR شركات سريعة النمو)",
+    "language": "english + arabic",
+    "description": "Scaleup activity, high-growth startups, growth-stage companies, business expansion and rapid-growth ventures."
+  },
+  {
+    "id": "5f5c668c3653d667",
+    "name": "(MSME OR MSMEs OR SME OR SMEs OR \"micro small and medium enterprises\" OR \"micro, small and medium-sized enterprises\" OR المؤسسات المتناهية الصغر والصغيرة والمتوسطة OR المؤسسات الصغيرة والمتوسطة OR الشركات الصغيرة والمتوسطة)",
+    "category": "MSMEs / SMEs",
+    "query": "(MSME OR MSMEs OR SME OR SMEs OR \"micro small and medium enterprises\" OR \"micro, small and medium-sized enterprises\" OR المؤسسات المتناهية الصغر والصغيرة والمتوسطة OR المؤسسات الصغيرة والمتوسطة OR الشركات الصغيرة والمتوسطة)",
+    "language": "english + arabic",
+    "description": "Micro, small and medium-sized enterprise developments, SME support programs, financing, business development and entrepreneurship initiatives."
+  },
+  {
+    "id": "8a1a742a4ad1b130",
+    "name": "(Qatar OR قطر) AND (scaleup OR scale-ups OR \"scale up\" OR \"high-growth startup\" OR MSME OR MSMEs OR SME OR SMEs OR \"micro small and medium enterprises\" OR المؤسسات المتناهية الصغر والصغيرة والمتوسطة OR المؤسسات الصغيرة والمتوسطة OR الشركات الصغيرة والمتوسطة OR شركة ناشئة متوسعة OR شركات سريعة النمو)",
+    "category": "Qatar Scaleups & MSMEs",
+    "query": "(Qatar OR قطر) AND (scaleup OR scale-ups OR \"scale up\" OR \"high-growth startup\" OR MSME OR MSMEs OR SME OR SMEs OR \"micro small and medium enterprises\" OR المؤسسات المتناهية الصغر والصغيرة والمتوسطة OR المؤسسات الصغيرة والمتوسطة OR الشركات الصغيرة والمتوسطة OR شركة ناشئة متوسعة OR شركات سريعة النمو)",
+    "language": "english + arabic",
+    "description": "Qatar-specific scaleup and MSME developments, including company growth, expansion, financing and government support."
+  },
+  {
+    "id": "1e79bf605bb73863",
+    "name": "(\"Qatar Science and Technology Park\" OR QSTP) AND (scaleup OR scale-ups OR MSME OR MSMEs OR SME OR SMEs OR الشركات الصغيرة والمتوسطة OR المؤسسات المتناهية الصغر والصغيرة والمتوسطة OR الشركات الناشئة المتوسعة)",
+    "category": "QSTP Scaleups & MSMEs",
+    "query": "(\"Qatar Science and Technology Park\" OR QSTP) AND (scaleup OR scale-ups OR MSME OR MSMEs OR SME OR SMEs OR الشركات الصغيرة والمتوسطة OR المؤسسات المتناهية الصغر والصغيرة والمتوسطة OR الشركات الناشئة المتوسعة)",
+    "language": "english + arabic",
+    "description": "QSTP-related initiatives, programs and announcements involving scaleups, SMEs, MSMEs and growing startups."
+  }
+]
