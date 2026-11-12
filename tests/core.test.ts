@@ -16,6 +16,7 @@ import scheduled from "../netlify/functions/daily-sync";
 import { admin } from "../server/auth";
 import { queueSync } from "../server/queue";
 import type { Article, Feed } from "../src/types";
+import { passesQualityChecks } from "../server/quality";
 let directory: string;
 let server: BlobsServer;
 const feed = {
@@ -73,6 +74,35 @@ test("RSS parses actual dates, missing dates, sanitized descriptions and skips u
   assert.equal(a[0].description, "Investment news");
   assert.equal(a[0].publishedAt, "2026-11-12T08:00:00.000Z");
   assert.equal(a[1].publishedAt, null);
+});
+test("quality checks reject generic video entries but preserve meaningful videos and undated articles", async () => {
+  for (const title of ["11 de novembro de 2026 - YouTube", "November 11, 2026 – YouTube", "2026-11-11", "YouTube"]) {
+    assert.equal(passesQualityChecks({ title, description: "" }), false);
+  }
+  const xml = `<rss version="2.0"><channel><title>Alerts</title>
+    <item><title>11 de novembro de 2026 - YouTube</title><link>https://www.youtube.com/watch?v=generic</link><description>Share your videos with friends, family, and the world.</description></item>
+    <item><title>Uninformative upload</title><link>https://www.youtube.com/watch?v=boilerplate</link><description>Share your videos with friends, family, and the world.</description></item>
+    <item><title>Qatar startup investment panel - YouTube</title><link>https://www.youtube.com/watch?v=panel</link><description>Founders discuss investment in Qatar.</description></item>
+    <item><title>قطر تدعم الشركات الناشئة</title><link>https://example.com/arabic</link></item>
+    </channel></rss>`;
+  const articles = await parse(xml, feed);
+  assert.equal(articles.length, 2);
+  assert.match(articles[0].title, /investment panel/);
+  assert.equal(articles[1].language, "Arabic");
+});
+test("snapshot hides previously collected low-quality entries without deleting stored records", async () => {
+  const id = "quality-check-test";
+  const bad = { ...(await parse(rss, feed))[0], id, title: "11 de novembro de 2026 - YouTube" };
+  await store().setJSON(`article/${id}`, bad);
+  try {
+    const response = await api(new Request("http://localhost/.netlify/functions/api"), {});
+    assert.equal(response.status, 200);
+    const snapshot = await response.json();
+    assert.ok(!snapshot.articles.some((a: Article) => a.id === id));
+    assert.ok(await read(`article/${id}`, null));
+  } finally {
+    await store().delete(`article/${id}`);
+  }
 });
 test("Atom handles Arabic and unwraps Google redirect preserving original URL", async () => {
   const a = await parse(

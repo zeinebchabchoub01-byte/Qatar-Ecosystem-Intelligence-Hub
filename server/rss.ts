@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import Parser from "rss-parser";
 import sanitize from "sanitize-html";
 import type { Article, Feed } from "../src/types";
+import { passesQualityChecks } from "./quality";
 export const hash = (v: string) => createHash("sha256").update(v).digest("hex");
 export const text = (v: string = "") =>
   decodeHTML(sanitize(v, { allowedTags: [], allowedAttributes: {} }))
@@ -56,6 +57,7 @@ export async function parse(
         item.contentSnippet || item.content || item.summary || "",
       );
       const title = text(item.title);
+      if (!passesQualityChecks({ title, description })) continue;
       const publisher =
         text((item as any).creator || "") ||
         new URL(url).hostname.replace(/^www\./, "");
