@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 import { BlobsServer } from "@netlify/blobs/server";
 import { setEnvironmentContext } from "@netlify/blobs";
 import { parse, mergeArticles, canonical } from "../server/rss";
@@ -47,6 +48,23 @@ before(async () => {
 after(async () => {
   await server.stop();
   await rm(directory, { recursive: true, force: true });
+});
+test("worker loads and sanitizes feed content without CommonJS require(ESM) support", () => {
+  execFileSync(
+    process.execPath,
+    [
+      "--no-experimental-require-module",
+      "--import",
+      "tsx",
+      "--input-type=module",
+      "-e",
+      `import assert from "node:assert/strict";
+     await import("./netlify/functions/sync-background.ts");
+     const { text } = await import("./server/rss.ts");
+     assert.equal(text('<b>Qatar &amp; growth</b><script>alert(1)</script>'), 'Qatar & growth');`,
+    ],
+    { cwd: new URL("..", import.meta.url), stdio: "pipe" },
+  );
 });
 test("RSS parses actual dates, missing dates, sanitized descriptions and skips unsafe links", async () => {
   const a = await parse(rss, feed);
