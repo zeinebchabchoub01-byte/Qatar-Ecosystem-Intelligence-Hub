@@ -11,7 +11,7 @@ The dashboard is public to anyone who has its URL. It is **not a private researc
 3. The worker fetches five feeds at a time, with a 12-second timeout and 3 MB response limit per feed. Each feed failure is recorded independently. It parses RSS and Atom, removes HTML from excerpts, unwraps Google article redirects, and uses feed publication dates.
 4. GUIDs identify entries when available; normalized article URLs are an additional cross-feed deduplication key. Original article URLs remain available; tracking parameters are removed only for deduplication. Every matching category and source is retained.
 5. Articles, bookmarks, source switches, fetch status, sync history and an atomic synchronization lease are stored in the **site-wide `qatar-ecosystem-v1` Netlify Blobs store** with strong consistency. Nothing relies on a production local filesystem. Deployments of the same Netlify project keep their stored data.
-6. The browser polls the API every 15 seconds. A run is successful only when every enabled feed succeeds. Partial runs retain collected articles and identify failed feeds. Last successful sync updates only after a fully successful run.
+6. The browser polls the API every 15 seconds. Importing an inventory automatically queues collection. Queued jobs that do not start within two minutes show a retry action; dispatch errors remain visible. A run is successful only when every enabled feed succeeds. Partial runs retain collected articles and identify failed feeds. Last successful sync updates only after a fully successful run.
 
 ## Project files
 
@@ -116,7 +116,7 @@ After deployment, sign in as admin, open Sources, choose **Import inventory**, a
 1. Open the production dashboard. Before a sync, counts are zero; this is a truthful empty state.
 2. Open **Sources**. Before importing, the safe catalog shows the 46 feeds as “Needs configuration”.
 3. Choose **Admin login** and enter `ADMIN_PASSWORD`. Credentials are sent over HTTPS and stored only as a signed HttpOnly session cookie, not in JavaScript or local storage.
-4. In Sources, choose **Import inventory** and select `private/feeds.json`. All 46 feeds should now be configured. Click **Refresh**. The app queues a worker and reports that it is queued. **Queued does not mean completed.** Within a polling cycle the run should change to “Synchronization in progress”.
+4. In Sources, choose **Import inventory** and select `private/feeds.json`. All 46 feeds should now be configured, and collection starts automatically. Importing now queues the first synchronization automatically. Use Start sync (or Refresh after collection) to retry. The app records the queued job before dispatch and reports when the worker starts. **Queued does not mean completed.** Within a polling cycle the run should change to “Synchronization in progress”.
 5. Wait for completion. The dashboard reports successful feeds, failed feeds and added articles. Open Sources to see individual failures. A zero-item feed can be healthy: Google Alerts may have no recent matching results.
 6. Verify **Last successful sync**. A partial or failed run does not overwrite the timestamp of the last fully successful run.
 
@@ -149,7 +149,7 @@ If one feed fails, other feeds continue; collected data remains visible. The sou
 1. Edit a copy of your inventory locally.
 2. Run `npm run inventory -- "path/to/inventory.txt"`.
 3. The importer accepts unique HTTPS Google Alerts URLs only. It regenerates the ignored `private/feeds.json` and the safe `server/source-catalog.json`. It preserves your categories and descriptions; it never invents feeds.
-4. Sign in as admin and import the regenerated `private/feeds.json` through Sources → Import inventory. Changes are immediately persistent.
+4. Sign in as admin and import the regenerated `private/feeds.json` through Sources → Import inventory. Changes are immediately persistent and queue collection automatically.
 5. Optionally commit/push the safe catalog change, so an empty/new installation has the latest catalog. A deployment is **not required** for the live inventory import. Do **not** commit the private file. Existing source toggles survive for unchanged feed URLs/IDs.
 6. Run Refresh and inspect Sources. Changing the URL creates a new source ID. Imported inventory replaces the active list; archived articles and bookmarks are retained.
 

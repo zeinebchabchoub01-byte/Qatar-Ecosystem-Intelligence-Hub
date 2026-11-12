@@ -32,7 +32,7 @@ export interface SyncRun {
   id: string;
   startedAt: string;
   finishedAt?: string;
-  status: "running" | "success" | "partial" | "failed";
+  status: "queued" | "running" | "success" | "partial" | "failed";
   successful: number;
   failed: number;
   added: number;

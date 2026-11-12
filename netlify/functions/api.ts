@@ -1,4 +1,5 @@
-import { admin, cookie, equal, sameOrigin, dispatch } from "../../server/auth";
+import { admin, cookie, equal, sameOrigin } from "../../server/auth";
+import { queueSync } from "../../server/queue";
 import { sources, validateInventory } from "../../server/sources";
 import { store, read, list } from "../../server/storage";
 import type { Article, SyncRun } from "../../src/types";
@@ -53,10 +54,19 @@ export default async (req: Request, context: any) => {
         const feeds = validateInventory(body.feeds);
         if (!feeds.length) return json({ error: "Inventory is empty" }, 400);
         await store().setJSON("feed-inventory", feeds);
+        try {
+          await queueSync();
+        } catch (error) {
+          return json({
+            ok: true,
+            message: `${feeds.length} feeds imported. ${error instanceof Error ? error.message : "Synchronization could not start."} Use Start sync to retry.`,
+          });
+        }
         return json({
           ok: true,
           message:
-            feeds.length + " feeds imported. Run Refresh to collect articles.",
+            feeds.length +
+            " feeds imported. Synchronization queued automatically.",
         });
       } catch {
         return json(
@@ -69,7 +79,19 @@ export default async (req: Request, context: any) => {
       }
     }
     if (action === "refresh") {
-      await dispatch();
+      try {
+        await queueSync();
+      } catch (error) {
+        return json(
+          {
+            error:
+              error instanceof Error
+                ? error.message
+                : "Synchronization could not start.",
+          },
+          503,
+        );
+      }
       return json(
         {
           ok: true,
