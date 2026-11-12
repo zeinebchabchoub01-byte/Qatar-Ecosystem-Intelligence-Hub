@@ -171,9 +171,7 @@ export function ArticleList({
                   <Bookmark size={20} />
                 </button>
               </div>
-              <p dir="auto">
-                {a.description || "No excerpt provided by this feed."}
-              </p>
+              {a.description && <p dir="auto">{a.description}</p>}
               <div className="tags">
                 {a.categories.map((c) => (
                   <span key={c}>{c}</span>

@@ -4,8 +4,8 @@ import { read } from "./storage";
 export const builtInFeeds: Feed[] = [
   {
     id: "falak-news",
-    name: "Falak — The Newsroom",
-    category: "The Newsroom",
+    name: "falaq/The Newsroom",
+    category: "falaq/The Newsroom",
     query: "Falak Qatar news",
     language: "English + Arabic",
     description: "Qatar startup, investment and innovation news from falak.qa",
@@ -15,8 +15,8 @@ export const builtInFeeds: Feed[] = [
   },
   {
     id: "falak-knowledge-hub",
-    name: "Falak — Knowledge Hub",
-    category: "Knowledge Hub",
+    name: "falaq/Knowledge Hub",
+    category: "falaq/Knowledge Hub",
     query: "Falak Qatar knowledge hub",
     language: "English + Arabic",
     description:
@@ -28,20 +28,9 @@ export const builtInFeeds: Feed[] = [
 ];
 builtInFeeds.push(
   {
-    id: "falak-startups",
-    name: "Falak — Startups’ Directory",
-    category: "Startups’ Directory",
-    query: "Falak startups ecosystem",
-    language: "English + Arabic",
-    description: "Startup profiles listed in Falak’s directory",
-    url: "https://www.falak.qa/collections/startups-directory",
-    enabled: true,
-    configured: true,
-  },
-  {
     id: "falak-network",
-    name: "Falak — Incubators and Accelerators Network",
-    category: "Incubators and Accelerators Network",
+    name: "falaq/Incubators and Accelerators Network",
+    category: "falaq/Incubators and Accelerators Network",
     query: "Falak incubators and accelerators",
     language: "English + Arabic",
     description:
@@ -52,8 +41,8 @@ builtInFeeds.push(
   },
   {
     id: "falak-reports",
-    name: "Falak — Whitepapers & Reports",
-    category: "Whitepapers & Reports",
+    name: "falaq/Whitepapers & Reports",
+    category: "falaq/Whitepapers & Reports",
     query: "Falak whitepapers and reports",
     language: "English + Arabic",
     description:
@@ -79,7 +68,7 @@ export function validateInventory(data: unknown): Feed[] {
         throw new Error("Invalid Google Alerts URL");
       if (
         !/^[a-zA-Z0-9_-]{1,64}$/.test(f.id) ||
-        builtInFeeds.some((builtIn) => builtIn.id === f.id) ||
+        (f.id === "falak-startups" || builtInFeeds.some((builtIn) => builtIn.id === f.id)) ||
         !f.category ||
         !f.language ||
         !f.description ||
