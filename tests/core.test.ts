@@ -18,6 +18,8 @@ import {
 } from "../server/sources";
 import api from "../netlify/functions/api";
 import scheduled from "../netlify/functions/daily-sync";
+import deploySync from "../netlify/functions/deploy-sync.mjs";
+import type { DeploySucceededEvent } from "@netlify/functions";
 import { admin } from "../server/auth";
 import { queueSync } from "../server/queue";
 import type { Article, Feed } from "../src/types";
@@ -329,7 +331,7 @@ test("mixed feed outcomes produce partial status and preserve successful content
   await store().setJSON("feed-inventory", [feed]);
 });
 
-test("accepted dispatch persists queued status, suppresses repeat clicks, and allows retry after timeout", async () => {
+test("published production deploy queues sync, excludes previews, suppresses repeats, and allows retry after timeout", async () => {
   const originalFetch = globalThis.fetch;
   const originalURL = process.env.APP_URL;
   const originalSecret = process.env.SYNC_SECRET;
@@ -349,7 +351,14 @@ test("accepted dispatch persists queued status, suppresses repeat clicks, and al
   };
   try {
     await store().delete("sync-current");
-    await queueSync();
+    const event = (context: string, publishedAt: string | null) =>
+      ({ deploy: { context, publishedAt } }) as DeploySucceededEvent;
+    await deploySync.deploySucceeded(event("deploy-preview", new Date().toISOString()));
+    await deploySync.deploySucceeded(event("branch-deploy", new Date().toISOString()));
+    await deploySync.deploySucceeded(event("production", null));
+    assert.equal(calls, 0);
+    assert.equal(await read("sync-current", null), null);
+    await deploySync.deploySucceeded(event("production", new Date().toISOString()));
     const queued = await read<any>("sync-current", null);
     assert.equal(queued.status, "queued");
     await queueSync();
