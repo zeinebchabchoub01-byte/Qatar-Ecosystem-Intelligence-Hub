@@ -51,7 +51,6 @@ export default function App() {
   const [filters, setFilters] = useState(emptyFilters);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
-  const [refreshAfterLogin, setRefreshAfterLogin] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [login, setLogin] = useState(false);
@@ -102,8 +101,6 @@ export default function App() {
   }
   function refresh() {
     if (!data?.admin) {
-      setRefreshAfterLogin(true);
-      setLogin(true);
       return;
     }
     mutate("refresh", {});
@@ -188,20 +185,22 @@ export default function App() {
               <Download size={18} />
               Export CSV
             </button>
-            <button
-              className="primary"
-              disabled={busy || running || queued}
-              onClick={refresh}
-            >
-              <RefreshCw size={18} className={running ? "spin" : ""} />
-              {running
-                ? "Syncing…"
-                : queued
-                  ? "Sync queued…"
-                  : !run || !data?.articles.length
-                    ? "Start sync"
-                    : "Refresh"}
-            </button>
+            {data?.admin && (
+              <button
+                className="primary"
+                disabled={busy || running || queued}
+                onClick={refresh}
+              >
+                <RefreshCw size={18} className={running ? "spin" : ""} />
+                {running
+                  ? "Syncing…"
+                  : queued
+                    ? "Sync queued…"
+                    : !run || !data?.articles.length
+                      ? "Start sync"
+                      : "Refresh"}
+              </button>
+            )}
           </div>
         </header>
         {(error || actionError) && (
@@ -277,51 +276,64 @@ export default function App() {
             <section
               className={
                 "sync-status " +
-                (run?.status === "failed" || run?.status === "partial"
+                (data.admin &&
+                (run?.status === "failed" || run?.status === "partial")
                   ? "warning"
                   : "")
               }
             >
               <Info size={23} />
-              <strong>
-                {queued
-                  ? "Synchronization queued"
-                  : run?.status === "queued"
-                    ? "Synchronization did not start"
-                    : !run
-                      ? "Not synchronized yet"
-                      : running
-                        ? "Synchronization in progress"
-                        : run.status === "running"
-                          ? "Previous sync interrupted"
-                          : run.status === "success"
-                            ? "Synchronization complete"
-                            : run.status === "partial"
-                              ? "Partially synchronized"
-                              : "Synchronization failed"}
-              </strong>
-              <span>
-                {run?.status === "queued"
-                  ? queued
-                    ? "Waiting for the collection worker to start…"
-                    : "The worker has not started. Click Start sync to retry. If this continues, check the sync-background function logs."
-                  : run
-                    ? `${run.successful} successful · ${run.failed} failed · ${run.added} new articles${run.error ? " · " + run.error : ""}`
-                    : data.sources.some((s) => s.configured && s.enabled)
-                      ? "Your feeds are ready. Start sync to collect your first articles."
-                      : "Import your feed inventory in Sources to start collecting articles."}
-              </span>
-              {!running &&
-                !queued &&
-                data.sources.some((s) => s.configured && s.enabled) && (
-                  <button className="primary" disabled={busy} onClick={refresh}>
-                    {run ? "Retry sync" : "Start first sync"}
-                  </button>
-                )}
+              {data.admin && (
+                <>
+                  <strong>
+                    {queued
+                      ? "Synchronization queued"
+                      : run?.status === "queued"
+                        ? "Synchronization did not start"
+                        : !run
+                          ? "Not synchronized yet"
+                          : running
+                            ? "Synchronization in progress"
+                            : run.status === "running"
+                              ? "Previous sync interrupted"
+                              : run.status === "success"
+                                ? "Synchronization complete"
+                                : run.status === "partial"
+                                  ? "Partially synchronized"
+                                  : "Synchronization failed"}
+                  </strong>
+                  <span>
+                    {run?.status === "queued"
+                      ? queued
+                        ? "Waiting for the collection worker to start…"
+                        : "The worker has not started. Click Start sync to retry. If this continues, check the sync-background function logs."
+                      : run
+                        ? `${run.successful} successful · ${run.failed} failed · ${run.added} new articles${run.error ? " · " + run.error : ""}`
+                        : data.sources.some((s) => s.configured && s.enabled)
+                          ? "Your feeds are ready. Start sync to collect your first articles."
+                          : "Import your feed inventory in Sources to start collecting articles."}
+                  </span>
+                  {!running &&
+                    !queued &&
+                    data.sources.some((s) => s.configured && s.enabled) && (
+                      <button
+                        className="primary"
+                        disabled={busy}
+                        onClick={refresh}
+                      >
+                        {run ? "Retry sync" : "Start first sync"}
+                      </button>
+                    )}
+                </>
+              )}
               <small>
-                Last successful sync: {dateLabel(data.lastSuccess)}
+                Last successful sync:{" "}
+                {data.lastSuccess
+                  ? dateLabel(data.lastSuccess)
+                  : "Not synchronized yet"}
                 <br />
-                {run?.finishedAt &&
+                {data.admin &&
+                  run?.finishedAt &&
                   `Last attempt: ${dateLabel(run.finishedAt)}`}
               </small>
             </section>
@@ -407,7 +419,7 @@ export default function App() {
                       }
                       mutate("bookmark", { id, saved });
                     }}
-                    onRefresh={refresh}
+                    onRefresh={data.admin ? refresh : undefined}
                     sort={filters.sort}
                     onSort={(sort) => setFilters((f) => ({ ...f, sort }))}
                     pageTitle={
@@ -439,7 +451,6 @@ export default function App() {
           className="modal-backdrop"
           onClick={() => {
             setLogin(false);
-            setRefreshAfterLogin(false);
           }}
         >
           <section
@@ -454,7 +465,6 @@ export default function App() {
               aria-label="Close login"
               onClick={() => {
                 setLogin(false);
-                setRefreshAfterLogin(false);
               }}
             >
               <X />
@@ -470,10 +480,6 @@ export default function App() {
                 if (await mutate("login", { password })) {
                   setPassword("");
                   setLogin(false);
-                  if (refreshAfterLogin) {
-                    setRefreshAfterLogin(false);
-                    await mutate("refresh", {});
-                  }
                 }
               }}
             >
