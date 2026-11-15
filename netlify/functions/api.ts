@@ -103,4 +103,3 @@ export default async (req: Request, context: any) => {
       try {
         const feeds = validateInventory(body.feeds);
         if (!feeds.length) return json({ error: "Inventory is empty" }, 400);
-        await
