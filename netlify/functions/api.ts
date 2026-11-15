@@ -32,6 +32,52 @@ export default async (req: Request, context: any) => {
         admin: admin(req),
       });
     }
+    // Shared reading list as a small feed for the weekly digest agent.
+    // Optional ?since=<ISO date> keeps only articles saved on or after that date.
+    if (req.method === "GET" && action === "saved") {
+      const sinceParam = url.searchParams.get("since");
+      const since = sinceParam ? Date.parse(sinceParam) : NaN;
+      if (sinceParam && Number.isNaN(since))
+        return json({ error: "Invalid since date" }, 400);
+      const { blobs } = await store().list({ prefix: "bookmark/" });
+      const items = await Promise.all(
+        blobs.map(async (b) => {
+          const id = b.key.slice(9);
+          const [meta, stored] = await Promise.all([
+            read<{ savedAt?: string; note?: string } | null>(b.key, null),
+            read<Article | null>(`article/${id}`, null),
+          ]);
+          if (!stored || isDirectoryArticle(stored)) return null;
+          const [article] = currentArticles([stored]);
+          if (!article || !passesQualityChecks(article)) return null;
+          return {
+            id,
+            savedAt: meta?.savedAt ?? null,
+            note: meta?.note ?? "",
+            title: article.title,
+            url: article.url,
+            publisher: article.publisher,
+            publishedAt: article.publishedAt,
+            language: article.language,
+            categories: article.categories,
+            excerpt: article.description,
+          };
+        }),
+      );
+      const saved = items
+        .filter((item): item is NonNullable<typeof item> => item !== null)
+        .filter(
+          (item) =>
+            Number.isNaN(since) ||
+            (item.savedAt !== null && Date.parse(item.savedAt) >= since),
+        )
+        .sort((a, b) => (b.savedAt ?? "").localeCompare(a.savedAt ?? ""));
+      return json({
+        generatedAt: new Date().toISOString(),
+        count: saved.length,
+        saved,
+      });
+    }
     if (req.method !== "POST")
       return json({ error: "Method not allowed" }, 405);
     if (!sameOrigin(req)) return json({ error: "Origin rejected" }, 403);
@@ -57,88 +103,4 @@ export default async (req: Request, context: any) => {
       try {
         const feeds = validateInventory(body.feeds);
         if (!feeds.length) return json({ error: "Inventory is empty" }, 400);
-        await store().setJSON("feed-inventory", feeds);
-        try {
-          await queueSync();
-        } catch (error) {
-          return json({
-            ok: true,
-            message: `${feeds.length} feeds imported. ${error instanceof Error ? error.message : "Synchronization could not start."} Use Start sync to retry.`,
-          });
-        }
-        return json({
-          ok: true,
-          message:
-            feeds.length +
-            " feeds imported. Synchronization queued automatically.",
-        });
-      } catch {
-        return json(
-          {
-            error:
-              "Invalid inventory. Use the generated private/feeds.json file.",
-          },
-          400,
-        );
-      }
-    }
-    if (action === "refresh") {
-      try {
-        await queueSync();
-      } catch (error) {
-        return json(
-          {
-            error:
-              error instanceof Error
-                ? error.message
-                : "Synchronization could not start.",
-          },
-          503,
-        );
-      }
-      return json(
-        {
-          ok: true,
-          message: "Refresh queued. Status will update when the worker starts.",
-        },
-        202,
-      );
-    }
-    if (action === "source") {
-      if (
-        !(await sources()).some((s) => s.id === body.id) ||
-        typeof body.enabled !== "boolean"
-      )
-        return json({ error: "Invalid source" }, 400);
-      await store().setJSON(`enabled/${body.id}`, body.enabled);
-      return json({ ok: true });
-    }
-    if (action === "bookmark") {
-      if (
-        !/^[a-f0-9]{64}$/.test(body.id) ||
-        !(await read(`article/${body.id}`, null)) ||
-        typeof body.saved !== "boolean"
-      )
-        return json({ error: "Invalid article" }, 400);
-      if (body.saved)
-        await store().setJSON(`bookmark/${body.id}`, {
-          savedAt: new Date().toISOString(),
-        });
-      else await store().delete(`bookmark/${body.id}`);
-      return json({ ok: true });
-    }
-    return json({ error: "Unknown action" }, 404);
-  } catch (e) {
-    console.error("API error", e instanceof Error ? e.name : "unknown");
-    return json(
-      {
-        error:
-          "Service unavailable. Check Netlify configuration and function logs.",
-      },
-      503,
-    );
-  }
-};
-export const config = {
-  rateLimit: { windowLimit: 60, windowSize: 60, aggregateBy: ["ip", "domain"] },
-};
+        await
