@@ -4,6 +4,7 @@ import { events } from "../db/schema.js";
 import type { QatarEvent } from "../src/types";
 
 export async function saveEvents(items: QatarEvent[]) {
+  if (!items.length) return;
   const db = database();
   // A transaction keeps a failed source from leaving a partly updated listing.
   await db.transaction(async (tx) => {

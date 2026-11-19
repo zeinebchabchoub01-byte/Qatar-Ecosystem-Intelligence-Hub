@@ -1075,11 +1075,12 @@ ol {
 }
 .event-controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin: 22px 0 16px;
 }
 .event-controls input {
-  flex: 1;
+  flex: 1 1 240px;
   min-width: 0;
   padding: 12px;
   border: 1px solid #d7dde4;
@@ -1125,6 +1126,9 @@ ol {
   }
   .event-controls {
     flex-direction: column;
+  }
+  .event-controls input {
+    flex-basis: auto;
   }
   .event-row {
     grid-template-columns: 1fr;

@@ -17,6 +17,7 @@ test("dispatch uses the deployed worker instead of a stale configured URL", asyn
   };
   globals.Netlify = { env: { get: (name) => values[name] } };
   let status = 202;
+  let expectedRun: string | undefined;
   let expectedOrigin = values.DEPLOY_URL;
   globalThis.fetch = async (input, init) => {
     assert.equal(
@@ -29,10 +30,20 @@ test("dispatch uses the deployed worker instead of a stale configured URL", asyn
       new Headers(init?.headers).get("Authorization"),
       `Bearer ${values.SYNC_SECRET}`,
     );
+    assert.deepEqual(
+      init?.body ? JSON.parse(String(init.body)) : undefined,
+      expectedRun ? { eventRunId: expectedRun } : undefined,
+    );
     return new Response(null, { status });
   };
   try {
     await dispatch();
+    expectedRun = "event-only-run";
+    await dispatch(expectedRun);
+    expectedOrigin = "https://preview-request.example";
+    await dispatch(expectedRun, expectedOrigin);
+    expectedOrigin = values.DEPLOY_URL;
+    expectedRun = undefined;
     delete values.DEPLOY_URL;
     expectedOrigin = values.URL;
     await dispatch();

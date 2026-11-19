@@ -1,3 +1,4 @@
+import { eventRecordsUnavailable, incubatorUnverified } from "./event-sources";
 import { eventMarkupError } from "./events";
 import { networkUnavailable } from "./falak";
 import { randomUUID } from "node:crypto";
@@ -80,7 +81,11 @@ export async function synchronize(
                 e instanceof Error &&
                 (/^HTTP \d+$/.test(e.message) ||
                   e.message === networkUnavailable ||
-                  e.message === eventMarkupError)
+                  [
+                    eventMarkupError,
+                    eventRecordsUnavailable,
+                    incubatorUnverified,
+                  ].includes(e.message))
                   ? e.message
                   : "Source collection or storage failed; check the source and function logs, then retry.",
             });
