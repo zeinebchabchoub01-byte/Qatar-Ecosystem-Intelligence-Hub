@@ -117,8 +117,10 @@ export async function sources(): Promise<Source[]> {
       const { url, ...safe } = { ...f, url: undefined } as any;
       return {
         ...safe,
-        configured: known.has(f.id),
-        enabled: await read(`enabled/${f.id}`, true),
+        configured: known.get(f.id)?.configured ?? false,
+        enabled:
+          (known.get(f.id)?.configured ?? false) &&
+          (await read(`enabled/${f.id}`, known.get(f.id)?.enabled ?? true)),
         ...(await read(`status/${f.id}`, {})),
       };
     }),
@@ -126,7 +128,7 @@ export async function sources(): Promise<Source[]> {
 }
 export async function enabledFeeds(): Promise<Feed[]> {
   const s = await sources();
-  return (await loadInventory()).filter(
-    (f) => s.find((x) => x.id === f.id)?.enabled,
+  return (await loadInventory()).filter((f) =>
+    s.some((x) => x.id === f.id && x.configured && x.enabled),
   );
 }

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarDays, ExternalLink, MapPin } from "lucide-react";
-import type { QatarEvent, Source } from "./types";
+import type { QatarEvent, Source, EventCollection } from "./types";
 import { qatarDay } from "./data";
 import { dateLabel } from "./components";
 const dayLabel = (day: string) =>
@@ -10,9 +10,13 @@ const dayLabel = (day: string) =>
   }).format(new Date(`${day}T00:00:00+03:00`));
 export default function Events({ sources }: { sources: Source[] }) {
   const [events, setEvents] = useState<QatarEvent[] | null>(null);
+  const [collection, setCollection] = useState<EventCollection | null>(null);
+  const [collectionError, setCollectionError] = useState("");
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [period, setPeriod] = useState("upcoming");
+  const [month, setMonth] = useState("");
+  const [year, setYear] = useState("");
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
@@ -28,6 +32,10 @@ export default function Events({ sources }: { sources: Source[] }) {
         const result = await response.json();
         if (!controller.signal.aborted) {
           setEvents(result.events);
+          setCollection(result.collection ?? null);
+          setCollectionError(
+            result.collectionError || result.collection?.error || "",
+          );
           setError("");
         }
       } catch (e) {
@@ -42,6 +50,16 @@ export default function Events({ sources }: { sources: Source[] }) {
     };
   }, [attempt]);
   const today = qatarDay();
+  const years = [
+    ...new Set((events || []).map((event) => event.startsOn.slice(0, 4))),
+  ].sort((a, b) => b.localeCompare(a));
+  const hasFilters = Boolean(query || month || year);
+  const showAll = () => {
+    setPeriod("all");
+    setQuery("");
+    setMonth("");
+    setYear("");
+  };
   const visible = useMemo(
     () =>
       (events || [])
@@ -51,20 +69,33 @@ export default function Events({ sources }: { sources: Source[] }) {
               (period === "upcoming"
                 ? event.endsOn >= today
                 : event.endsOn < today)) &&
+            (!month || event.startsOn.slice(5, 7) === month) &&
+            (!year || event.startsOn.slice(0, 4) === year) &&
             `${event.title} ${event.description} ${event.organizer} ${event.location}`
               .toLowerCase()
               .includes(query.toLowerCase()),
         )
-        .sort((a, b) =>
-          period === "past"
-            ? b.startsOn.localeCompare(a.startsOn)
-            : a.startsOn.localeCompare(b.startsOn),
-        ),
-    [events, period, query, today],
+        .sort((a, b) => b.startsOn.localeCompare(a.startsOn)),
+    [events, period, query, month, year, today],
   );
-  const eventSources = sources.filter((source) =>
-    source.id.startsWith("events-"),
-  );
+  const collecting =
+    collection?.status === "queued" || collection?.status === "running";
+  const eventSources = sources
+    .filter((source) => source.id.startsWith("events-"))
+    .map((source) => {
+      const collected = collection?.sources.find(
+        (item) => item.id === source.id,
+      );
+      return collected
+        ? {
+            ...source,
+            lastAttempt: collected.lastAttempt,
+            lastSuccess: collected.lastSuccess,
+            lastError: collected.lastError,
+            items: collected.items,
+          }
+        : source;
+    });
   return (
     <section className="panel events-panel">
       <div className="panel-heading">
@@ -72,15 +103,17 @@ export default function Events({ sources }: { sources: Source[] }) {
           <CalendarDays size={22} /> Qatar entrepreneurship events
         </h2>
         <span>
-          {events
-            ? `${visible.length} ${visible.length === 1 ? "event" : "events"}`
-            : "Loading…"}
+          {collecting && !visible.length
+            ? "Checking sources…"
+            : events
+              ? `${visible.length} ${visible.length === 1 ? "event" : "events"}`
+              : "Loading…"}
         </span>
       </div>
       <p className="source-note">
-        Automatically collected from Startup Qatar’s public calendar during
-        daily synchronization. Dates are the organizer’s event dates. Confirm
-        availability on the source website.
+        Collected daily from enabled Qatar calendars, AllEvents and Eventbrite
+        where verifiable listings are available. Dates are the organizer’s event
+        dates. Confirm availability on the source website.
       </p>
       <div className="event-controls">
         <input
@@ -99,17 +132,64 @@ export default function Events({ sources }: { sources: Source[] }) {
           <option value="past">Past events</option>
           <option value="all">All events</option>
         </select>
+        <select
+          aria-label="Event start month"
+          value={month}
+          onChange={(e) => setMonth(e.target.value)}
+        >
+          <option value="">All months</option>
+          {Array.from({ length: 12 }, (_, index) => (
+            <option key={index} value={String(index + 1).padStart(2, "0")}>
+              {new Intl.DateTimeFormat("en-GB", {
+                month: "long",
+                timeZone: "UTC",
+              }).format(new Date(Date.UTC(2026, index, 1)))}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Event start year"
+          value={year}
+          onChange={(e) => setYear(e.target.value)}
+        >
+          <option value="">All years</option>
+          {years.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
       </div>
+      <p className="source-note">
+        Newest start date first. Month and year filters use the event’s start
+        date.
+      </p>
       {eventSources.map((source) => (
         <p
           key={source.id}
           className={source.lastError ? "error-text" : "source-note"}
         >
           {source.name} · {source.enabled ? "Enabled" : "Collection disabled"} ·
-          Last collected: {dateLabel(source.lastSuccess)}
+          {source.lastSuccess
+            ? `Last collected: ${dateLabel(source.lastSuccess)}`
+            : source.lastAttempt
+              ? "No successful collection yet"
+              : "No collection run yet"}
+          {!source.configured && ` · ${source.description}`}
           {source.lastError && ` · ${source.lastError}`}
         </p>
       ))}
+      {collecting && (
+        <p className="source-note" role="status">
+          Collecting events from the enabled sources. New listings appear
+          automatically as collection finishes.
+        </p>
+      )}
+      {collectionError && (
+        <p className="error-text" role="alert">
+          {collectionError}
+        </p>
+      )}
       {error && (
         <div className="notice error" role="alert">
           {error}
@@ -127,21 +207,25 @@ export default function Events({ sources }: { sources: Source[] }) {
         <div className="empty">
           <CalendarDays size={48} strokeWidth={1.5} />
           <h3>
-            {query
-              ? "No matching events"
-              : period === "upcoming"
-                ? "No upcoming events collected yet"
-                : "No events in this view"}
+            {collecting && !hasFilters
+              ? "Checking event sources"
+              : hasFilters
+                ? "No matching events"
+                : period === "upcoming"
+                  ? "No upcoming events collected yet"
+                  : "No events in this view"}
           </h3>
           <p>
-            {query
-              ? "Try a different event, organizer or venue."
-              : "Collection runs daily. The source may currently list only past events; check All events or review its status in Sources."}
+            {collecting && !hasFilters
+              ? "Collection is in progress. This page updates automatically; you do not need to start a separate sync."
+              : hasFilters
+                ? "Try another search, month or year, or view all collected events."
+                : period === "upcoming" && events.length
+                  ? `${events.length} past ${events.length === 1 ? "event is" : "events are"} saved. Choose All events to view them. This is the saved collection, not a count of all events in Qatar.`
+                  : "No verified listings are saved for this view yet. Source access failures are shown above; an empty collection does not mean there are no events in Qatar."}
           </p>
-          {period !== "all" && (
-            <button onClick={() => setPeriod("all")}>
-              View all collected events
-            </button>
+          {(period !== "all" || hasFilters) && (
+            <button onClick={showAll}>View all collected events</button>
           )}
         </div>
       )}

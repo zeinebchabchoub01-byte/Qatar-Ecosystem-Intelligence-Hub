@@ -18,8 +18,74 @@ export const eventFeeds: Feed[] = [
     enabled: true,
     configured: true,
   },
+  ...[
+    [
+      "wsj-qatar",
+      "WSJ Tech: Qatar",
+      "https://wsjtechevent.wsj.com/qatar/",
+      "Official WSJ Tech Qatar event page. Collects the published conference dates, venue and overview directly from the organizer.",
+    ],
+    [
+      "allevents",
+      "AllEvents Doha",
+      "https://allevents.in/doha-qa/all",
+      "Public Doha listings, filtered for entrepreneurship, founders, investors, business networking and innovation.",
+    ],
+    [
+      "allevents-business",
+      "AllEvents Doha business",
+      "https://allevents.in/doha-qa/business",
+      "Business listings with dates and venues verified on individual event pages.",
+    ],
+    [
+      "allevents-startups",
+      "AllEvents Doha startups",
+      "https://allevents.in/doha-qa/startups",
+      "Startup listings with dates and venues verified on individual event pages.",
+    ],
+    [
+      "allevents-entrepreneurship",
+      "AllEvents Doha entrepreneurship",
+      "https://allevents.in/doha-qa/entrepreneurship",
+      "Entrepreneurship listings with dates and venues verified on individual event pages.",
+    ],
+    [
+      "eventbrite",
+      "Eventbrite Qatar",
+      "https://www.eventbrite.com/d/qatar--doha/qatar/",
+      "Public Qatar listings. Reports an unavailable source when Eventbrite supplies no readable event records.",
+    ],
+    [
+      "eventbrite-business",
+      "Eventbrite Doha business",
+      "https://www.eventbrite.com/d/qatar--doha/business--events/",
+      "Public business listings filtered for physical Qatar entrepreneurship events.",
+    ],
+    [
+      "qstp",
+      "Qatar Science & Technology Park events",
+      "https://www.qstp.org.qa/",
+      "Official QSTP event links. Individual pages may block automated access; failures are reported without removing saved events.",
+    ],
+    [
+      "incubator",
+      "Qatar Incubator calendar (unverified)",
+      "https://incubator.qa/",
+      "Checked calendar: event dates are generated relative to the viewing day, rather than fixed organizer dates. Automatic collection is unavailable until verifiable listings are published.",
+    ],
+  ].map(([id, name, url, description]): Feed => ({
+    id: `events-${id}`,
+    name,
+    url,
+    description,
+    category: "Entrepreneurship events",
+    query: "Qatar entrepreneurship events",
+    language: "English + Arabic",
+    enabled: id !== "incubator",
+    configured: id !== "incubator",
+  })),
 ];
-const clean = (value = "") =>
+export const clean = (value = "") =>
   decodeHTML(
     sanitize(decodeHTML(value), { allowedTags: [], allowedAttributes: {} }),
   )

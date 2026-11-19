@@ -325,7 +325,7 @@ test("mixed feed outcomes produce partial status and preserve successful content
     return parse(rss, f);
   });
   assert.equal("status" in run && run.status, "partial");
-  assert.equal("successful" in run && run.successful, 1 + builtInFeeds.length);
+  assert.equal("successful" in run && run.successful, 1 + builtInFeeds.filter(f => f.configured && f.enabled).length);
   assert.equal("failed" in run && run.failed, 1);
   assert.equal(await read("last-success", null), last);
   await store().setJSON("feed-inventory", [feed]);
@@ -407,8 +407,8 @@ test("Falak feeds stay configured without inventory and respect source toggles",
     delete process.env.RSS_FEEDS_JSON;
     const all = await sources();
     for (const feed of builtInFeeds) {
-      assert.equal(all.find((s) => s.id === feed.id)?.configured, true);
-      assert.ok((await enabledFeeds()).some((f) => f.id === feed.id));
+      assert.equal(all.find((s) => s.id === feed.id)?.configured, feed.configured);
+      assert.equal((await enabledFeeds()).some((f) => f.id === feed.id), feed.configured && feed.enabled);
     }
     await store().setJSON("enabled/falak-news", false);
     assert.ok(!(await enabledFeeds()).some((f) => f.id === "falak-news"));
@@ -426,6 +426,19 @@ test("Falak feeds stay configured without inventory and respect source toggles",
     else await store().delete("feed-inventory");
     if (raw === undefined) delete process.env.RSS_FEEDS_JSON;
     else process.env.RSS_FEEDS_JSON = raw;
+  }
+});
+
+test("unverified event sources remain unconfigured and excluded even with a saved enable override", async () => {
+  const id = "events-incubator";
+  try {
+    await store().setJSON(`enabled/${id}`, true);
+    const source = (await sources()).find((source) => source.id === id);
+    assert.equal(source?.configured, false);
+    assert.equal(source?.enabled, false);
+    assert.equal((await enabledFeeds()).some((feed) => feed.id === id), false);
+  } finally {
+    await store().delete(`enabled/${id}`);
   }
 });
 

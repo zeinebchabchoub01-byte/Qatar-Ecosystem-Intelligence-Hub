@@ -40,7 +40,7 @@ export function workerAuth(req: Request) {
     equal(req.headers.get("authorization") || "", `Bearer ${s}`)
   );
 }
-export async function dispatch() {
+export async function dispatch(eventRunId?: string, deploymentOrigin?: string) {
   // Use this deployment's worker, even when APP_URL still names an old site.
   const runtime = (
     globalThis as typeof globalThis & {
@@ -48,7 +48,10 @@ export async function dispatch() {
     }
   ).Netlify?.env;
   const url =
-    runtime?.get("DEPLOY_URL") || runtime?.get("URL") || process.env.APP_URL;
+    deploymentOrigin ||
+    runtime?.get("DEPLOY_URL") ||
+    runtime?.get("URL") ||
+    process.env.APP_URL;
   const s = runtime?.get("SYNC_SECRET") || process.env.SYNC_SECRET;
   if (!url || !s || s.length < 32)
     throw new Error("Configure APP_URL and SYNC_SECRET");
@@ -60,7 +63,11 @@ export async function dispatch() {
     throw new Error("APP_URL must use HTTPS");
   const res = await fetch(target, {
     method: "POST",
-    headers: { Authorization: `Bearer ${s}` },
+    headers: {
+      Authorization: `Bearer ${s}`,
+      "Content-Type": "application/json",
+    },
+    ...(eventRunId ? { body: JSON.stringify({ eventRunId }) } : {}),
     redirect: "error",
     signal: AbortSignal.timeout(10000),
   });

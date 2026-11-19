@@ -135,7 +135,7 @@ export function mergeArticles(existing: Article[], incoming: Article[]) {
   return { articles: out, added };
 }
 export async function fetchFeed(feed: Feed) {
-  const isEventPage = feed.id === "events-startup-qatar";
+  const isEventPage = feed.id.startsWith("events-");
   const isFalakPage = ["falak-network", "falak-reports"].includes(feed.id);
   const response = await fetch(feed.url, {
     signal: AbortSignal.timeout(12000),
@@ -164,7 +164,12 @@ export async function fetchFeed(feed: Feed) {
   const content = Buffer.concat(chunks).toString("utf8");
   if (isEventPage) {
     const { parseStartupEvents } = await import("./events");
-    return parseStartupEvents(content, feed).map((event): Article => ({
+    const { collectEventPage } = await import("./event-sources");
+    const events =
+      feed.id === "events-startup-qatar"
+        ? parseStartupEvents(content, feed)
+        : await collectEventPage(content, feed);
+    return events.map((event): Article => ({
       id: event.id,
       title: event.title,
       description: event.description,

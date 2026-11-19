@@ -61,3 +61,12 @@ export interface Snapshot {
   bookmarks: string[];
   admin: boolean;
 }
+
+export interface EventCollection {
+  id: string;
+  status: "queued" | "running" | "success" | "partial" | "failed";
+  startedAt: string;
+  finishedAt?: string;
+  error?: string;
+  sources: Source[];
+}

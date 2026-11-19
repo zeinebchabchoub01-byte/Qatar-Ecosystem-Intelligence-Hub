@@ -23,7 +23,21 @@ export default async (req: Request, context: any) => {
     const action = url.searchParams.get("action") || "snapshot";
     if (req.method === "GET" && action === "events") {
       const { loadEvents } = await import("../../server/event-storage");
-      return json({ events: await loadEvents() });
+      const { ensureEventCollection } =
+        await import("../../server/event-collection");
+      const events = await loadEvents();
+      try {
+        const collection = await ensureEventCollection(undefined, url.origin);
+        return json({ events, collection });
+      } catch {
+        // Storage/dispatch failures must not hide previously collected events.
+        return json({
+          events,
+          collection: null,
+          collectionError:
+            "Automatic event collection is temporarily unavailable. Please retry shortly.",
+        });
+      }
     }
     if (req.method === "GET" && action === "snapshot") {
       const stored = await list<Article>("article/");
