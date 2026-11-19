@@ -18,7 +18,10 @@ export function firstParagraph(value: string = "") {
     allowedTags: ["p", "br"],
     allowedAttributes: {},
   });
-  const paragraphs = findAll((node) => node.name === "p", parseDocument(clean).children);
+  const paragraphs = findAll(
+    (node) => node.name === "p",
+    parseDocument(clean).children,
+  );
   for (const paragraph of paragraphs) {
     const excerpt = text(getOuterHTML(paragraph));
     if (excerpt) return excerpt;
@@ -69,9 +72,15 @@ export async function parse(
         date && Number.isFinite(Date.parse(date))
           ? new Date(date).toISOString()
           : null;
-      const description = [
-        item["content:encoded"], item.content, item.summary, item.contentSnippet,
-      ].map((value) => firstParagraph(value || "")).find(Boolean) || "";
+      const description =
+        [
+          item["content:encoded"],
+          item.content,
+          item.summary,
+          item.contentSnippet,
+        ]
+          .map((value) => firstParagraph(value || ""))
+          .find(Boolean) || "";
       const title = text(item.title);
       if (!passesQualityChecks({ title, description })) continue;
       const publisher =
@@ -126,16 +135,15 @@ export function mergeArticles(existing: Article[], incoming: Article[]) {
   return { articles: out, added };
 }
 export async function fetchFeed(feed: Feed) {
-  const isFalakPage = [
-    "falak-network",
-    "falak-reports",
-  ].includes(feed.id);
+  const isEventPage = feed.id === "events-startup-qatar";
+  const isFalakPage = ["falak-network", "falak-reports"].includes(feed.id);
   const response = await fetch(feed.url, {
     signal: AbortSignal.timeout(12000),
     headers: {
-      Accept: isFalakPage
-        ? "text/html"
-        : "application/atom+xml, application/rss+xml, application/xml",
+      Accept:
+        isFalakPage || isEventPage
+          ? "text/html"
+          : "application/atom+xml, application/rss+xml, application/xml",
     },
   });
   if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -154,6 +162,23 @@ export async function fetchFeed(feed: Feed) {
     chunks.push(value);
   }
   const content = Buffer.concat(chunks).toString("utf8");
+  if (isEventPage) {
+    const { parseStartupEvents } = await import("./events");
+    return parseStartupEvents(content, feed).map((event): Article => ({
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      url: event.url,
+      publisher: event.organizer,
+      publishedAt: null,
+      collectedAt: event.collectedAt,
+      language: detectLanguage(event.title, event.description),
+      categories: [feed.category],
+      guids: [],
+      sourceIds: [feed.id],
+      event,
+    }));
+  }
   if (isFalakPage) {
     const { parseFalakPage } = await import("./falak");
     return parseFalakPage(content, feed);

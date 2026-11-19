@@ -86,7 +86,7 @@ If a real secret is accidentally uploaded, delete it from GitHub and rotate it i
 6. Add the four environment variables below before deploying, if the import screen offers that option. Otherwise deploy once, add them under **Project configuration → Environment variables**, then deploy again.
 7. Deploy. A successful build ends with Vite output and deployed functions.
 8. Open the project's production URL (for example `https://your-project.netlify.app`). Find it on the Project overview page.
-9. Set `APP_URL` to that exact production origin, then redeploy if you changed the variable. Do not use a deploy-preview URL.
+9. Worker dispatch automatically uses Netlify’s current deployment URL, keeping collection within the same deployment. `APP_URL` is a fallback for local development or runtimes without Netlify URL metadata.
 10. Every later push to `main` triggers a new production build automatically. Article data remains in the same site's Blobs store.
 
 ## 3. Configure environment variables and storage
@@ -98,7 +98,7 @@ Add these variables in Netlify under **Project configuration → Environment var
 | `ADMIN_PASSWORD` | A unique random password at least 32 characters long. This is the admin login password. |
 | `SESSION_SECRET` | A different random secret, at least 32 characters, for signing the eight-hour HttpOnly session cookie. |
 | `SYNC_SECRET` | A third random secret, at least 32 characters, authenticating worker dispatch. Never enter it in the dashboard. |
-| `APP_URL` | Your production origin, e.g. `https://your-project.netlify.app`, without trailing slash. |
+| `APP_URL` | Fallback origin for local development or runtimes without Netlify URL metadata. Hosted dispatch prefers Netlify’s deployment URL, then its site URL. |
 
 
 To generate a secret locally, run the following **three times**, using a different result for each secret:
@@ -183,7 +183,7 @@ Tests use the official Blobs emulator in an isolated temporary directory. They v
 | Dashboard says Service unavailable | Check function runtime environment scope, Blobs availability and Function logs. Environment changes require a deploy. |
 | Zero active sources / Needs configuration | Sign in as admin and use Sources → Import inventory to upload private/feeds.json. |
 | Admin login unavailable | ADMIN_PASSWORD and SESSION_SECRET must each be at least 32 characters. Use the production context and redeploy. |
-| Refresh rejected / worker never starts | APP_URL must match the production URL, SYNC_SECRET must be set, and sync-background must deploy as Background. Inspect daily-sync and sync-background logs. |
+| Refresh rejected / worker never starts | SYNC_SECRET must be set and sync-background must deploy as Background. Hosted dispatch targets the current deployment automatically; local dispatch uses APP_URL. Inspect daily-sync and sync-background logs. |
 | Partial / failed sync | Open Sources. HTTP 404/403/429 can mean deleted feeds, access restrictions or Google rate limiting. Retry later or replace/disable the affected feed. |
 | Healthy feed has no items | Google Alerts can return an empty feed. No articles are invented. Check it directly in your private browser using the URL from your inventory. |
 | Last successful sync is old | A partial run does not count as full success. Check feed errors and the scheduled function logs. |
@@ -206,3 +206,11 @@ Tests use the official Blobs emulator in an isolated temporary directory. They v
 Falak sources are configured automatically and included in manual and scheduled syncs alongside imported Google Alerts. Each source can be disabled individually in Sources. The Newsroom and Knowledge Hub use Falak’s Atom feeds. Whitepapers & Reports collects individual listing cards from its public page. Falak categories use the `falaq/Page name` format. Startups’ Directory is excluded, and previously collected directory entries and their bookmarks are removed on synchronization. Report cards link to Falak’s original pages; no report download or access restriction is bypassed. Entries without a published date remain undated, and repeated syncs do not add duplicate URLs.
 
 The Incubators and Accelerators Network source checks Falak’s linked network page. At verification, this page displayed Knowledge Hub content rather than network listings. It reports a visible source error and makes the sync partial while other sources continue collecting; unrelated articles are not imported as incubators. The source can be disabled until Falak supplies listings. HTML collection covers listing cards exposed on the public page, not unlisted profiles or a full historical crawl. Changes to Falak’s markup may require parser updates.
+
+## Automatic Qatar entrepreneurship events
+
+The **Events** view collects physical Qatar entrepreneurship events from the public [Startup Qatar calendar](https://startupqatar.qa/en/events). Collection uses the existing daily 06:00 Qatar synchronization and authenticated Refresh action. The built-in event source can be enabled or disabled in Sources without importing an inventory.
+
+Event dates, organizers, venues, descriptions and source links come from the listing cards. Only listings with valid date ranges, a Qatar venue and entrepreneurship relevance are collected; online and overseas listings are excluded. The current public listing can contain only historical events. Upcoming and ongoing events are shown by default, with Past events and All events available, plus keyword search. Event dates are kept separately from article publication dates, and times are not inferred from calendar widget defaults.
+
+Events are upserted in Netlify Database using the Drizzle schema in `db/schema.ts`. Database migrations are applied by Netlify during deployment. Existing article storage remains unchanged. Repeated collection updates existing event records instead of creating duplicates. Fetching retains the existing 12-second timeout and 3 MB limit. A failed fetch or database write marks that source as failed while other sources continue; previously collected events remain available. An event disappearing from the source does not confirm cancellation, so confirm attendance details on the linked source website. Coverage currently includes the source’s main public listing page.

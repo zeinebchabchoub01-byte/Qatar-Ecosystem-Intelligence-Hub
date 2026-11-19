@@ -15,7 +15,22 @@ export interface Source {
 export interface Feed extends Source {
   url: string;
 }
+export interface QatarEvent {
+  id: string;
+  title: string;
+  description: string;
+  startsOn: string;
+  endsOn: string;
+  location: string;
+  organizer: string;
+  url: string;
+  sourceId: string;
+  sourceName: string;
+  sourceUrl: string;
+  collectedAt: string;
+}
 export interface Article {
+  event?: QatarEvent;
   id: string;
   guids: string[];
   url: string;

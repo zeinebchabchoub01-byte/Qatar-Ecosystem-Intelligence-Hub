@@ -4,7 +4,10 @@ import { sources, validateInventory } from "../../server/sources";
 import { store, read, list } from "../../server/storage";
 import type { Article, SyncRun } from "../../src/types";
 import { passesQualityChecks } from "../../server/quality";
-import { currentArticles, isDirectoryArticle } from "../../server/article-sources";
+import {
+  currentArticles,
+  isDirectoryArticle,
+} from "../../server/article-sources";
 const json = (
   data: unknown,
   status = 200,
@@ -18,17 +21,23 @@ export default async (req: Request, context: any) => {
   try {
     const url = new URL(req.url);
     const action = url.searchParams.get("action") || "snapshot";
+    if (req.method === "GET" && action === "events") {
+      const { loadEvents } = await import("../../server/event-storage");
+      return json({ events: await loadEvents() });
+    }
     if (req.method === "GET" && action === "snapshot") {
       const stored = await list<Article>("article/");
-      const removedIds = new Set(stored.filter(isDirectoryArticle).map((article) => article.id));
+      const removedIds = new Set(
+        stored.filter(isDirectoryArticle).map((article) => article.id),
+      );
       return json({
         articles: currentArticles(stored).filter(passesQualityChecks),
         sources: await sources(),
         run: await read<SyncRun | null>("sync-current", null),
         lastSuccess: await read("last-success", null),
-        bookmarks: (await store().list({ prefix: "bookmark/" })).blobs.map(
-          (b) => b.key.slice(9),
-        ).filter((id) => !removedIds.has(id)),
+        bookmarks: (await store().list({ prefix: "bookmark/" })).blobs
+          .map((b) => b.key.slice(9))
+          .filter((id) => !removedIds.has(id)),
         admin: admin(req),
       });
     }

@@ -1,3 +1,4 @@
+import { eventMarkupError } from "./events";
 import { networkUnavailable } from "./falak";
 import { randomUUID } from "node:crypto";
 import { store, read, list } from "./storage";
@@ -51,7 +52,14 @@ export async function synchronize(
           const lastAttempt = new Date().toISOString();
           try {
             const articles = await fetcher(feed);
-            incoming.push(...articles);
+            const events = articles.flatMap((article) =>
+              article.event ? [article.event] : [],
+            );
+            if (events.length) {
+              const { saveEvents } = await import("./event-storage");
+              await saveEvents(events);
+            }
+            incoming.push(...articles.filter((article) => !article.event));
             await db.setJSON(`status/${feed.id}`, {
               lastAttempt,
               lastSuccess: new Date().toISOString(),
@@ -71,9 +79,10 @@ export async function synchronize(
               lastError:
                 e instanceof Error &&
                 (/^HTTP \d+$/.test(e.message) ||
-                  e.message === networkUnavailable)
+                  e.message === networkUnavailable ||
+                  e.message === eventMarkupError)
                   ? e.message
-                  : "Feed fetch or parsing failed; check the RSS URL and retry.",
+                  : "Source collection or storage failed; check the source and function logs, then retry.",
             });
           }
         }
