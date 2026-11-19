@@ -1031,4 +1031,114 @@ ol {
     flex-direction: column;
   }
 }
-.date-controls{display:flex;gap:14px;align-items:center;flex-basis:100%;border-top:1px solid #edf0f4;padding-top:10px}.date-controls label{display:flex;align-items:center;gap:8px;color:#5b6573;font-size:12px}.date-controls .text-button{margin-left:auto}@media(max-width:480px){.date-controls{flex-wrap:wrap;gap:10px}.date-controls label{flex:1 1 100%}.date-controls input[type=date]{flex:1}.date-controls .text-button{margin:0}}
+.date-controls {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  flex-basis: 100%;
+  border-top: 1px solid #edf0f4;
+  padding-top: 10px;
+}
+.date-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #5b6573;
+  font-size: 12px;
+}
+.date-controls .text-button {
+  margin-left: auto;
+}
+@media (max-width: 480px) {
+  .date-controls {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .date-controls label {
+    flex: 1 1 100%;
+  }
+  .date-controls input[type="date"] {
+    flex: 1;
+  }
+  .date-controls .text-button {
+    margin: 0;
+  }
+}
+
+.events-panel {
+  padding: 24px;
+}
+.events-panel h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.event-controls {
+  display: flex;
+  gap: 12px;
+  margin: 22px 0 16px;
+}
+.event-controls input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #d7dde4;
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+}
+.event-row {
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 24px;
+}
+.event-date {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-inline-start: 3px solid #8a2440;
+  padding-inline-start: 14px;
+}
+.event-date small {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.event-row .article-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.event-source {
+  font-size: 13px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.event-collected {
+  display: block;
+  margin-top: 10px;
+  color: #697487;
+}
+@media (max-width: 640px) {
+  .events-panel {
+    padding: 18px;
+  }
+  .event-controls {
+    flex-direction: column;
+  }
+  .event-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+}
+.events-panel .panel-heading > span {
+  white-space: nowrap;
+}
+.events-panel h2 svg {
+  flex-shrink: 0;
+}
+@media (max-width: 640px) {
+  .events-panel h2 {
+    font-size: 18px;
+  }
+}

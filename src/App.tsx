@@ -14,6 +14,7 @@ import {
   X,
   Menu,
 } from "lucide-react";
+import Events from "./Events";
 import type { Snapshot } from "./types";
 import { filterArticles, emptyFilters, csv, qatarDay, weekStart } from "./data";
 import {
@@ -28,6 +29,7 @@ const nav = [
   ["Latest intelligence", FileText],
   ["Categories", Layers],
   ["Saved articles", Bookmark],
+  ["Events", CalendarDays],
   ["Sources", Database],
 ] as const;
 async function request(action: string, body?: unknown) {
@@ -181,10 +183,12 @@ export default function App() {
             <p>Qatar entrepreneurship, innovation & investment</p>
           </div>
           <div className="actions">
-            <button onClick={exportCsv} disabled={!data}>
-              <Download size={18} />
-              Export CSV
-            </button>
+            {view !== "Events" && (
+              <button onClick={exportCsv} disabled={!data}>
+                <Download size={18} />
+                Export CSV
+              </button>
+            )}
             {data?.admin && (
               <button
                 className="primary"
@@ -260,7 +264,7 @@ export default function App() {
                 ],
                 [
                   Database,
-                  "Active RSS sources",
+                  "Active sources",
                   data.sources.filter((s) => s.enabled && s.configured).length,
                 ],
               ].map(([Icon, label, value]: any) => (
@@ -337,7 +341,9 @@ export default function App() {
                   `Last attempt: ${dateLabel(run.finishedAt)}`}
               </small>
             </section>
-            {view === "Sources" ? (
+            {view === "Events" ? (
+              <Events sources={data.sources} />
+            ) : view === "Sources" ? (
               <>
                 <section className="panel import-panel">
                   <div>

@@ -1,3 +1,4 @@
+import { eventFeeds } from "./events";
 import catalog from "./source-catalog.json";
 import type { Feed, Source } from "../src/types";
 import { read } from "./storage";
@@ -52,6 +53,7 @@ builtInFeeds.push(
     configured: true,
   },
 );
+builtInFeeds.push(...eventFeeds);
 export function validateInventory(data: unknown): Feed[] {
   if (!Array.isArray(data) || data.length > 250)
     throw new Error("Inventory must contain no more than 250 feeds");
@@ -68,7 +70,8 @@ export function validateInventory(data: unknown): Feed[] {
         throw new Error("Invalid Google Alerts URL");
       if (
         !/^[a-zA-Z0-9_-]{1,64}$/.test(f.id) ||
-        (f.id === "falak-startups" || builtInFeeds.some((builtIn) => builtIn.id === f.id)) ||
+        f.id === "falak-startups" ||
+        builtInFeeds.some((builtIn) => builtIn.id === f.id) ||
         !f.category ||
         !f.language ||
         !f.description ||

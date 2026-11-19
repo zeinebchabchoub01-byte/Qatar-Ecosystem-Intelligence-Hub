@@ -11,5 +11,5 @@
     "resolveJsonModule": true,
     "types": ["node"]
   },
-  "include": ["src", "server", "netlify", "scripts", "tests", "vite.config.ts"]
+  "include": ["db", "drizzle.config.ts", "src", "server", "netlify", "scripts", "tests", "vite.config.ts"]
 }

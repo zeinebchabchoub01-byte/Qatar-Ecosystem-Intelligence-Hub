@@ -41,8 +41,15 @@ export function workerAuth(req: Request) {
   );
 }
 export async function dispatch() {
-  const url = process.env.APP_URL;
-  const s = process.env.SYNC_SECRET;
+  // Use this deployment's worker, even when APP_URL still names an old site.
+  const runtime = (
+    globalThis as typeof globalThis & {
+      Netlify?: { env: { get(name: string): string | undefined } };
+    }
+  ).Netlify?.env;
+  const url =
+    runtime?.get("DEPLOY_URL") || runtime?.get("URL") || process.env.APP_URL;
+  const s = runtime?.get("SYNC_SECRET") || process.env.SYNC_SECRET;
   if (!url || !s || s.length < 32)
     throw new Error("Configure APP_URL and SYNC_SECRET");
   const target = new URL("/.netlify/functions/sync-background", url);
@@ -54,6 +61,7 @@ export async function dispatch() {
   const res = await fetch(target, {
     method: "POST",
     headers: { Authorization: `Bearer ${s}` },
+    redirect: "error",
     signal: AbortSignal.timeout(10000),
   });
   if (res.status !== 202)
